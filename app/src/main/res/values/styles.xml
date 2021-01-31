@@ -1,0 +1,331 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorIdentity</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="EditTextTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorControlNormal">@color/colorInActive</item>
+        <item name="colorControlActivated">@color/colorIdentity</item>
+        <item name="colorControlHighlight">@color/colorIdentity</item>
+    </style>
+
+    <style name="FullImageFloatingButton" parent="Widget.Design.FloatingActionButton">
+        <item name="fabSize">normal</item>
+        <item name="maxImageSize">56dp</item>
+    </style>
+
+    <style name="MaterialAppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorIntro</item>
+        <item name="colorPrimaryDark">@color/colorIntroDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- No Title Bar-->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <!-- number picker 의 구분선에 사용됨     -->
+        <!--<item name="colorControlNormal">@color/colorAccent</item>-->
+    </style>
+
+
+<!--    현재 사용하고 있는 앱 테마-->
+    <style name="MaterialAppThemeDarkActionBar" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorIntro</item>
+        <item name="colorPrimaryDark">@color/colorIntroDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- No Title Bar-->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <!-- Material Bottom Sheet Corner Round(바텀 시트 모서리 둥글게 만들기) -->
+        <item name="bottomSheetDialogTheme">@style/CustomBottomSheetDialog</item>
+    </style>
+
+
+
+
+<!-- 커스텀 프로그래스 bar 다이얼로그-->
+    <style name="CustomDialogTheme">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+
+
+<!-- Material Bottom Sheet Corner Round(바텀 시트 모서리 둥글게 만들기) -->
+    <style name="CustomBottomSheetDialog" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomBottomSheet</item>
+    </style>
+
+    <style name="CustomBottomSheet" parent="Widget.MaterialComponents.BottomSheet">
+        <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
+    </style>
+
+    <style name="CustomShapeAppearanceBottomSheetDialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">16dp</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+    </style>
+
+
+
+<!--    Text 스타일 설정-->
+    <style name="Hello">
+        <item name="android:textSize">
+            28sp
+        </item>
+        <item name="android:textColor">
+            #002E3F
+        </item>
+    </style>
+    <style name="TextStyleToJoin">
+        <item name="android:textSize">
+            20sp
+        </item>
+        <item name="android:textColor">
+            #002E3F
+        </item>
+    </style>
+    <style name="CheckJoinTermsTextStyle">
+        <item name="android:textSize">
+            10sp
+        </item>
+        <item name="android:textColor">
+            #002E3F
+        </item>
+    </style>
+
+
+<!-- 323232  -->
+    <style name="QuestionForJoinTextStyle">
+        <item name="android:textSize">
+            30sp
+        </item>
+        <item name="android:letterSpacing">
+            -0.05
+        </item>
+        <item name="android:textColor">
+            #323232
+        </item>
+    </style>
+    <style name="ButtonForJoinTextStyle">
+        <item name="android:textSize">
+            25sp
+        </item>
+        <item name="android:letterSpacing">
+            -0.01
+        </item>
+        <item name="android:textColor">
+            #323232
+        </item>
+    </style>
+    <style name="TextStyle_Exercise_Name">
+        <item name="android:textSize">
+            22sp
+        </item>
+        <item name="android:textColor">
+            #323232
+        </item>
+    </style>
+    <style name="QuestionForJoinEXTextStyle">
+        <item name="android:textSize">
+            20sp
+        </item>
+        <item name="android:letterSpacing">
+            -0.05
+        </item>
+        <item name="android:textColor">
+            #323232
+        </item>
+    </style>
+    <style name="TextStyle_MultipleSelection">
+        <item name="android:textSize">
+            15sp
+        </item>
+        <item name="android:textColor">
+            #323232
+        </item>
+    </style>
+
+
+
+<!-- 99323232  -->
+    <style name="ExplainExerciseTextStyle">
+        <item name="android:textSize">
+            13sp
+        </item>
+        <item name="android:letterSpacing">
+            -0.01
+        </item>
+        <item name="android:textColor">
+            #99323232
+        </item>
+    </style>
+    <style name="ExerciseInfoTextStyle">
+        <item name="android:textSize">
+            15sp
+        </item>
+        <item name="android:letterSpacing">
+            -0.01
+        </item>
+        <item name="android:textColor">
+            #99323232
+        </item>
+    </style>
+
+
+
+
+    <style name="QuestionExplnationTextStyle">
+        <item name="android:textSize">
+            12sp
+        </item>
+        <item name="android:textColor">
+            #002E3F
+        </item>
+    </style>
+
+
+
+<!--    <style name="QuestionExplnationTextStyle">-->
+<!--        <item name="android:textSize">-->
+<!--            13sp-->
+<!--        </item>-->
+<!--        <item name="android:textColor">-->
+<!--            #002E3F-->
+<!--        </item>-->
+<!--    </style>-->
+
+    <style name="TextStyle_UnSelectedSex">
+        <item name="android:textSize">
+            55sp
+        </item>
+        <item name="android:textColor">
+            #BDBDBD
+        </item>
+    </style>
+
+    <style name="TextStyle_SelectedSex">
+        <item name="android:textSize">
+            55sp
+        </item>
+        <item name="android:textColor">
+            #07BEB8
+        </item>
+    </style>
+    <style name="TextStyle_PlayTime">
+        <item name="android:textSize">
+            45sp
+        </item>
+        <item name="android:textColor">
+            #07BEB8
+        </item>
+    </style>
+    <style name="TextStyle_better">
+        <item name="android:textSize">
+            25sp
+        </item>
+        <item name="android:textColor">
+            #07BEB8
+        </item>
+    </style>
+
+
+    <style name="TextStyle_NumberPickerTextStyle">
+        <item name="android:textSize">
+            50sp
+        </item>
+        <item name="android:textColor">
+            #002E3F
+        </item>
+    </style>
+
+    <style name="TextStyle_ExplainFindPassword">
+        <item name="android:textSize">
+            18sp
+        </item>
+        <item name="android:letterSpacing">
+            0.03
+        </item>
+        <item name="android:textColor">
+            #000000
+        </item>
+    </style>
+
+    <style name="TextStyle_shop">
+        <item name="android:textSize">
+            15sp
+        </item>
+        <item name="android:textColor">
+            #A3A3A3
+        </item>
+    </style>
+
+
+    <style name="TextStyle_Exercies_TotalTime">
+        <item name="android:textSize">
+            17sp
+        </item>
+        <item name="android:textColor">
+            #8FB3B1
+        </item>
+    </style>
+
+
+
+    <style name="EditTheme" >
+        <item name="colorControlNormal">@color/colorIntro</item>
+    </style>
+
+<!-- 흰색 TextStyle  -->
+    <style name="TextStyle_Exercise_explain">
+        <item name="android:textSize">
+            24sp
+        </item>
+        <item name="android:textColor">
+            #ffffff
+        </item>
+    </style>
+    <style name="TextStyle_Exercise_nomal">
+        <item name="android:textSize">
+            15sp
+        </item>
+        <item name="android:textColor">
+            #ffffff
+        </item>
+    </style>
+
+<!-- ImageView Corner  -->
+    <style name="round_imageview">
+        <item name="cornerFamily">
+            rounded
+        </item>
+        <item name="cornerSize">
+            20dp
+        </item>
+        <item name="color">
+            #ffffff
+        </item>
+    </style>
+
+    <style name="round_imageview_item">
+        <item name="cornerFamily">
+            rounded
+        </item>
+        <item name="cornerSize">
+            10dp
+        </item>
+        <item name="color">
+            #ffffff
+        </item>
+    </style>
+
+</resources>
