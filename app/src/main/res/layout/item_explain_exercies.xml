@@ -42,7 +42,6 @@
 
             android:background="@drawable/radius_white_button"
             android:scaleType="fitXY"
-            android:src="@drawable/loading"
 
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"

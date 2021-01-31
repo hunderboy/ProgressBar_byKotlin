@@ -51,7 +51,7 @@ class ExplainExerciseListViewHolder (itemView: View,
             .with(App.getApplicationContext())
             .load(exerciseModel.exerciseImage)
 //            .centerCrop()
-            .placeholder(R.mipmap.ic_launcher)
+            .placeholder(R.drawable.loading)
             .into(exerciseImageView)
 
     }

@@ -72,7 +72,7 @@ class ProgressBarInItemActivity : AppCompatActivity(), MyRecyclerviewInterface {
          * 리사이클러뷰 세팅  ------------------------------------------------------------
          */
         for (i in 1..5){
-            val imageUri = numberImageWhen(i).toString()
+            val imageUri = numberImageWhen(i)
             Log.e(TAG, "imageUri = $imageUri")
 
             val explainExerciseListModel = ExplainExerciseListModel(
