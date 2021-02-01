@@ -81,13 +81,6 @@
         app:layout_constraintEnd_toStartOf="@+id/fab_start"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/RecyclerView_Play_exercise_list"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progressBar_horizon_line" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

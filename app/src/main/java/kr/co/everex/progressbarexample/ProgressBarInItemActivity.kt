@@ -3,7 +3,12 @@ package kr.co.everex.progressbarexample
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kr.co.everex.progressbarexample.`interface`.MyRecyclerviewInterface
 import kr.co.everex.progressbarexample.adapter.ExplainExerciseListAdapter
 import kr.co.everex.progressbarexample.databinding.ActivityProgressBarInItemBinding
@@ -11,14 +16,9 @@ import kr.co.everex.progressbarexample.model.ExplainExerciseListModel
 import java.util.*
 import kotlin.properties.Delegates
 
-class ProgressBarInItemActivity : AppCompatActivity(), MyRecyclerviewInterface {
+class ProgressBarInItemActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProgressBarInItemBinding
-    val TAG: String = "로그"
 
-
-    // 리사이클러뷰 데이터 리스트
-    var modelList = ArrayList<ExplainExerciseListModel>()
-    private lateinit var explainExerciseListAdapter: ExplainExerciseListAdapter
 
 
 
@@ -28,10 +28,10 @@ class ProgressBarInItemActivity : AppCompatActivity(), MyRecyclerviewInterface {
     private var timerTask: Timer? = null
 
 
-    // secondary = true
-    // progress = false
-    private var progressBooleanType = true
 
+
+    // 코루틴 scope
+    private val scope = CoroutineScope(Dispatchers.Main)
 
     // 싱글톤
     companion object {
@@ -44,10 +44,78 @@ class ProgressBarInItemActivity : AppCompatActivity(), MyRecyclerviewInterface {
         // 클래스 속성(second, millisecond)
         var timeDataProgressValue = 0
         var sec = 0
+
+        // Todo milli 데이터 변경 할 때마다 실행되는 코드
         var milli: Int by Delegates.observable(0, { props, old, new ->
-            // 데이터 변경 시에 실행되는 코드
             timeDataProgressValue += 1
         })
+    }
+
+
+
+
+    /**
+     * ready progress 코루틴
+     */
+    fun ready(){
+        val readyToProgressBar = scope.launch {
+            binding.fabStart.text = "일시정지" // 텍스트 일시정지로 변경
+
+            timerTask = kotlin.concurrent.timer(period = 10) {
+                time++ // 계속 변경됨
+                timeData.sec = time / 100   // 초 단위 값
+                timeData.milli = time % 100 // (나머지 값) : 0 ~ 99 값
+
+                // 5가 되는 순간, timerTask 중단 하고 Exercies progress 재생
+                if(timeData.sec == 5){
+                    binding.progressBarHorizonLine.secondaryProgress = 0 // ready progress '0' 초기화
+                    binding.progressBarHorizonLine.max = 1000 // 1000 칸으로 변경 = 10초
+                    timerTask?.cancel()
+                    play()
+                }
+
+                // timeData.milli 데이터가 계속 변경 되기때문에, 0.01초 마다 변경됨
+                runOnUiThread {
+                    binding.secText.text = "${timeData.sec}"
+                    binding.milliText.text = "${timeData.milli}"
+
+                    binding.progressBarHorizonLine.secondaryProgress =
+                        binding.progressBarHorizonLine.secondaryProgress + 1 // 0.01 초에 1칸씩 채워진다.
+                }
+            }
+
+        }
+        readyToProgressBar.isActive
+    }
+
+    /**
+     * main progress 코루틴
+     */
+    fun play(){
+        val playToProgressBar = scope.launch {
+
+            timerTask = kotlin.concurrent.timer(period = 10) {
+                time++ // 계속 변경됨
+                timeData.sec = time / 100   // 초 단위 값
+                timeData.milli = time % 100 // (나머지 값) : 0 ~ 99 값
+
+                // 5가 되는 순간, timerTask 중단 하고 Exercies progress 재생
+                if(timeData.sec == 15){
+                    binding.progressBarHorizonLine.progress = 0 // main progress '0' 초기화
+                    timerTask?.cancel()
+                }
+
+                runOnUiThread {
+                    binding.secText.text = "${timeData.sec}"
+                    binding.milliText.text = "${timeData.milli}"
+
+                    binding.progressBarHorizonLine.progress =
+                        binding.progressBarHorizonLine.progress + 1 // 0.01 초에 1칸씩 채워진다.
+                }
+            }
+
+        }
+        playToProgressBar.isActive
     }
 
 
@@ -61,94 +129,16 @@ class ProgressBarInItemActivity : AppCompatActivity(), MyRecyclerviewInterface {
         // 일시정지 상태에서는 데이터 정지 + 일시정지 화면을 띄운다.
         binding.fabStart.setOnClickListener{
             isRunning = !isRunning
-            if (isRunning) start() else pause()
+            if (isRunning) ready() else pause()
         }
         binding.fabReset.setOnClickListener{
             reset()
         }
 
 
-        /**
-         * 리사이클러뷰 세팅  ------------------------------------------------------------
-         */
-        for (i in 1..5){
-            val imageUri = numberImageWhen(i)
-            Log.e(TAG, "imageUri = $imageUri")
-
-            val explainExerciseListModel = ExplainExerciseListModel(
-                exerciseName = "Exercise $i",
-                exerciseImage = imageUri
-            )
-            this.modelList.add(explainExerciseListModel)
-        }
+    }// onCreate
 
 
-        // 어답터 인스턴스 생성
-        explainExerciseListAdapter = ExplainExerciseListAdapter(this)
-        explainExerciseListAdapter.submitList(this.modelList)
-        // 리사이클러뷰 설정
-        binding.RecyclerViewPlayExerciseList.apply {
-            // 리사이클러뷰 방향 등 설정
-            layoutManager = LinearLayoutManager(this@ProgressBarInItemActivity, LinearLayoutManager.VERTICAL, false)
-            // 어답터 장착
-            adapter = explainExerciseListAdapter
-        }
-
-    }
-
-
-
-    // 시작 함수
-    private fun start() {
-        binding.fabStart.text = "일시정지" // 텍스트 일시정지로 변경
-
-        // period = 10 는 무엇을 뜻하는 것인가?
-        timerTask = kotlin.concurrent.timer(period = 10) {
-            time++ // 계속 변경됨
-            // 변경 될때 마다 새롭게 변수 생성되고 연산되고, 연산된 변수 할당됨
-            timeData.sec = time / 100
-            timeData.milli = time % 100 // 나머지 값 : 00 ~ 99
-
-            /**
-             * sec = 5 가 되는 순간
-             * secondaryProgress = 0 초기화
-             * Progress +1 씩 증가
-             */
-            if(timeData.sec == 5){
-                binding.progressBarHorizonLine.secondaryProgress = 0 // 칸 초기화
-//                 binding.progressBarHorizonLine.max = 1000 // 1000 칸으로
-                timeData.timeDataProgressValue = 0
-                progressBooleanType = false
-            }
-            /**
-             * sec = 15초 가 되는 순간
-             * Progress = 0 초기화
-             * timerTask 중지
-             */
-            else if (timeData.sec == 10){
-                timeData.timeDataProgressValue = 0
-                progressBooleanType = true
-                timerTask?.cancel() // 테스크 종료
-            }
-
-            // 지켜보고 있다가 데이터가 변하면 바로 적용
-            runOnUiThread {
-                binding.secText.text = "${timeData.sec}"
-                binding.milliText.text = "${timeData.milli}"
-
-                // Todo true
-                if(timeData.sec <= 4){ // progressbar secondaryProgress 진행
-                    binding.progressBarHorizonLine.secondaryProgress =
-                        timeData.timeDataProgressValue
-                    // Todo false
-                }else { // progressbar Main Progress 진행
-                    binding.progressBarHorizonLine.progress =
-                        timeData.timeDataProgressValue
-                }
-            }
-
-        }
-    }
 
     // 일시정지 함수
     private fun pause() {
@@ -174,43 +164,6 @@ class ProgressBarInItemActivity : AppCompatActivity(), MyRecyclerviewInterface {
     }
 
 
-
-    /**
-     * 리사이클러뷰 리스트 기능
-     */
-    private fun numberImageWhen(a: Any): String {
-        val value = when (a) {
-            1 -> "https://i.ibb.co/Pcnp65t/exercise-list-1.png"
-            2 -> "https://i.ibb.co/W5NLCYp/exercise-list-2.png"
-            3 -> "https://i.ibb.co/QC2nYBy/exercise-list-3.png"
-            4 -> "https://i.ibb.co/8bRGjkn/exercise-list-4.png"
-            5 -> "https://i.ibb.co/R0YZjvN/exercise-list-5.png"
-            else ->
-                "https://img1.daumcdn.net/thumb/C100x100.mplusfriend/?fname=http%3A%2F%2Fk.kakaocdn.net%2Fdn%2FIxxPp%2FbtqC9MkM3oH%2FPpvHOkfOiOpKUwvvWcxhJ0%2Fimg_s.jpg"
-        }
-        return value
-    }
-
-    override fun onItemClicked(position: Int) {
-        Log.d(TAG, "ExplainExerciseActivity - onItemClicked() called / position: $position")
-//
-//        var name: String? = null
-//
-//        // 값이 비어있으면 ""를 넣는다.
-//        // unwrapping - 언랩핑
-//
-//        val title: String = this.modelList[position].exerciseName ?: ""
-//
-////        val title: String = name ?: "호호호"
-//
-//        AlertDialog.Builder(this)
-//            .setTitle(title)
-//            .setMessage("$title 와 함께하는 빡코딩! :)")
-//            .setPositiveButton("오케이") { dialog, id ->
-//                Log.d(TAG, "ExplainExerciseActivity - 다이얼로그 확인 버튼 클릭했음")
-//            }
-//            .show()
-    }
 
 
 

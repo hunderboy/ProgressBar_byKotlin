@@ -23,11 +23,17 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view) // 뷰 바인딩 적용 완료
 
-
-        binding.buttonProgressInRecyclerviewItem.setOnClickListener{
+        // 프로그래스 바 TEST
+        binding.button1.setOnClickListener{
             val intent = Intent(this, ProgressBarInItemActivity::class.java)
             startActivity(intent)
         }
+        // 리사이클러뷰 안에 프로그래스 바
+        binding.button2.setOnClickListener{
+            val intent = Intent(this, ProgressBarInRecyclerViewActivity::class.java)
+            startActivity(intent)
+        }
+
 
     }
 
