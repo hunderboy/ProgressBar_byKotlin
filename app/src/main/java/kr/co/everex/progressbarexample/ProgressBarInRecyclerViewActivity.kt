@@ -14,6 +14,7 @@ import kr.co.everex.progressbarexample.model.ExplainExerciseListModel
 import java.util.*
 import android.os.CountDownTimer
 import android.view.View
+import kotlinx.coroutines.delay
 
 class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInterface {
     private lateinit var binding: ActivityProgressBarInRecyclerViewBinding
@@ -28,8 +29,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     private val scope = CoroutineScope(Dispatchers.Main)
 
 
-
-
     // 스톱워치 변수
     private var time = 0
     private var isRunning = false
@@ -42,12 +41,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     // 남은 시간 할당하기
     private var mTimeLeftInMillis: Long? = 0
 
-
-    // 일시정지 함수
-//    private fun pause() {
-//        binding.fabStart.text = "시작" // 텍스트 시작으로 변경
-//        timerTask?.cancel()
-//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +70,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                 readyProgressMaxValue = readyProgressMaxValue,
                 exerciseProgressMaxValue = exerciseProgressMaxValue,
                 exerciseTotalTime = exerciseTotalTime,
+                exerciseTimeValue = exerciseTotalTime,
             )
             this.modelList.add(explainExerciseListModel)
         }
@@ -94,11 +88,16 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         // 리사이클러뷰 세팅 완료 후 작업 ------------------------------------------------------------
         ready()
 
-//        var downTimerTask = CountDownTimer(40000, 1000){
-//        }.start()
-
 
     }// onCreate 끝
+
+
+    // 일시정지 함수
+//    private fun pause() {
+//        binding.fabStart.text = "시작" // 텍스트 시작으로 변경
+//        timerTask?.cancel()
+//    }
+
 
 
 
@@ -126,6 +125,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                         explainExerciseListAdapter.notifyDataSetChanged()
                         readyTimerTask?.cancel()
                         play() // 운동 progress bar 시작
+                        exerciseCountDownTimer() // 카운트 다운 타이머 시작
                     }
                 }
                 runOnUiThread {
@@ -144,7 +144,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
      */
     fun play(){
         val playToProgressBar = scope.launch {
-            mTimeLeftInMillis = modelList[0].exerciseTotalTime
             exerciseTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
 
@@ -154,6 +153,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                         time = 0
                         modelList[0].exerciseProgressValue = 0
                         modelList[0].exerciseIsRunning = false
+                        modelList[0].exerciseTimeValue = modelList[0].exerciseTotalTime
                         // 데이터 적용
                         explainExerciseListAdapter.submitList(modelList)
                         explainExerciseListAdapter.notifyDataSetChanged()
@@ -164,8 +164,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                     // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
                     modelList[0].exerciseIsRunning = true
                     modelList[0].exerciseProgressValue += 1
-
-
                     explainExerciseListAdapter.submitList(modelList)
                     explainExerciseListAdapter.notifyDataSetChanged()
                 }
@@ -174,33 +172,28 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         playToProgressBar.isActive
     }
 
-    // 시작되면 계속 카운트 다운
-    private fun startTimer() {
-        mCountDownTimer = object : CountDownTimer(mTimeLeftInMillis, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                mTimeLeftInMillis = millisUntilFinished
-                updateCountDownText()
-            }
-            override fun onFinish() {
-                mTimerRunning = false
-                binding.buttonStartPause.text = "Start"
-                binding.buttonStartPause.visibility = View.INVISIBLE
-                binding.buttonReset.visibility = View.VISIBLE
-            }
-        }.start()
+    /**
+     * 카운트 다운
+     */
+    private fun exerciseCountDownTimer(){
+        mTimeLeftInMillis = modelList[0].exerciseTimeValue
+        val countDown = scope.launch {
+            delay(1000)
+            mCountDownTimer = object : CountDownTimer(mTimeLeftInMillis!!, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    mTimeLeftInMillis = millisUntilFinished
 
-        mTimerRunning = true
+                    modelList[0].exerciseTimeValue = mTimeLeftInMillis!! // 데이터 변화
+                    explainExerciseListAdapter.submitList(modelList)
+                    explainExerciseListAdapter.notifyDataSetChanged()
+                }
+                override fun onFinish() {}
+            }.start()
+        }
+        countDown.isActive
     }
 
-    // 시간 Text 업데이트
-    private fun updateCountDownText(timeLeftInMillis:Long) {
-        val minutes = (timeLeftInMillis / 1000).toInt() / 60
-        val seconds = (timeLeftInMillis / 1000).toInt() % 60
-        val timeLeftFormatted: String =
-            java.lang.String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
 
-        binding.textViewCountdown.text = timeLeftFormatted
-    }
 
 
 
@@ -260,22 +253,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
 
     override fun onItemClicked(position: Int) {
         Log.d(TAG, "ExplainExerciseActivity - onItemClicked() called / position: $position")
-//        var name: String? = null
-//
-//        // 값이 비어있으면 ""를 넣는다.
-//        // unwrapping - 언랩핑
-//
-//        val title: String = this.modelList[position].exerciseName ?: ""
-//
-////        val title: String = name ?: "호호호"
-//
-//        AlertDialog.Builder(this)
-//            .setTitle(title)
-//            .setMessage("$title 와 함께하는 빡코딩! :)")
-//            .setPositiveButton("오케이") { dialog, id ->
-//                Log.d(TAG, "ExplainExerciseActivity - 다이얼로그 확인 버튼 클릭했음")
-//            }
-//            .show()
     }
 
 

@@ -9,7 +9,6 @@ import kr.co.everex.progressbarexample.`interface`.MyRecyclerviewInterface
 import kr.co.everex.progressbarexample.info.App
 import kr.co.everex.progressbarexample.model.ExplainExerciseListModel
 import kotlinx.android.synthetic.main.item_explain_exercies.view.*
-import java.time.temporal.TemporalAmount
 import java.util.*
 
 
@@ -60,19 +59,16 @@ class ExplainExerciseListViewHolder (itemView: View,
             .into(exerciseImageView)
         /**--------------------------------------------------**/
 
-
+        // 카운트 다운 설정
+        updateCountDownText(exerciseModel.exerciseTimeValue)
 
         // 준비 프로그래스 바 진행
         if(exerciseModel.readyIsRunning){
-            updateCountDownText(exerciseModel.exerciseTotalTime)
             exerciseProgressBar.max = exerciseModel.readyProgressMaxValue
             exerciseProgressBar.secondaryProgress = exerciseModel.readyProgressValue
         }
         // 운동 프로그래스 바 진행
         if(exerciseModel.exerciseIsRunning){
-
-            updateCountDownText(exerciseModel.exerciseTotalTime)
-
             exerciseProgressBar.max = exerciseModel.exerciseProgressMaxValue
             exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
         }
