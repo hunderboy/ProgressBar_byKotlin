@@ -13,6 +13,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="tranperency">#00000000</color>
 
     <color name="colorInActive">#e3e6e9</color>
     <color name="colorActive">#19d3a9</color>

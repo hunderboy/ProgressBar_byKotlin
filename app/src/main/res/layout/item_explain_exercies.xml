@@ -11,27 +11,9 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp">
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp">
 
-        <ProgressBar
-            android:id="@+id/progressBar_exercise_item"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:indeterminate="false"
-            android:max="500"
-
-            android:maxHeight="60dp"
-            android:minHeight="60dp"
-
-            android:secondaryProgress="0"
-            android:progress="0"
-            android:progressDrawable="@drawable/progress_tranperency"
-
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
 
         <com.google.android.material.imageview.ShapeableImageView
@@ -81,6 +63,26 @@
 
         </LinearLayout>
 
+
+
+        <ProgressBar
+            android:id="@+id/progressBar_exercise_item"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="false"
+            android:max="500"
+
+            android:maxHeight="60dp"
+            android:minHeight="60dp"
+
+            android:secondaryProgress="0"
+            android:progress="0"
+            android:progressDrawable="@drawable/progress_tranperency"
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
