@@ -32,14 +32,12 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
 
     // 스톱워치 변수
     private var time = 0
-    private var sec = 0
     private var isRunning = false
-
+    // 카운트 다운
     private var downTimerTask: CountDownTimer? = null
 
     // 준비
     private var readyTimerTask: Timer? = null
-
     // 운동
     private var exerciseTimerTask: Timer? = null
 
@@ -113,14 +111,12 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         val readyToProgressBar = scope.launch {
             readyTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
-                sec = time / 100   // 초 단위 값
 
                 // 5.0 초 가 되는 순간, timerTask 중단 하고 Exercies progress 재생
-                if(sec == 5){
+                if(time == modelList[0].readyProgressMaxValue){
                     runOnUiThread {
                         // 데이터 초기화
                         time = 0
-                        sec = 0
                         modelList[0].readyProgressValue = 0
                         modelList[0].readyIsRunning = false
                         // 데이터 적용
@@ -148,13 +144,11 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         val playToProgressBar = scope.launch {
             exerciseTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
-                sec = time / 100   // 초 단위 값
 
-                if(sec == 10){  // 10초
+                if(time == modelList[0].exerciseProgressMaxValue){  // 10초
                     runOnUiThread {
                         // 데이터 초기화
                         time = 0
-                        sec = 0
                         modelList[0].exerciseProgressValue = 0
                         modelList[0].exerciseIsRunning = false
                         // 데이터 적용
@@ -197,10 +191,10 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     private fun readyProgressDataWhen(a: Any): Int {
         val value = when (a) {
             1 -> 500
-            2 -> 1000
-            3 -> 700
+            2 -> 700
+            3 -> 800
             4 -> 1000
-            5 -> 800
+            5 -> 1200
             else -> 1000
         }
         return value
@@ -209,9 +203,9 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     private fun exerciseProgressDataWhen(a: Any): Int {
         val value = when (a) {
             1 -> 1000
-            2 -> 1500
+            2 -> 1300
             3 -> 5000 // 50초
-            4 -> 2000
+            4 -> 1500
             5 -> 3000
             else -> 1000
         }

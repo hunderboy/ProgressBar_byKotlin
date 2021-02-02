@@ -33,7 +33,11 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, ProgressBarInRecyclerViewActivity::class.java)
             startActivity(intent)
         }
-
+        // 카운트 다운 타이머
+        binding.button3.setOnClickListener{
+            val intent = Intent(this, CountDownActivity::class.java)
+            startActivity(intent)
+        }
 
     }
 
