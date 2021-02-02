@@ -36,11 +36,11 @@ class ProgressBarInItemActivity : AppCompatActivity() {
     // 싱글톤
     companion object {
         // 싱글톤 object
-        val timeData = TimeData()
+        private val timeData = TimeData()
     }
 
     // 내부 클래스
-    class TimeData {
+    private class TimeData {
         // 클래스 속성(second, millisecond)
         var timeDataProgressValue = 0
         var sec = 0

@@ -3,18 +3,17 @@ package kr.co.everex.progressbarexample
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kr.co.everex.progressbarexample.`interface`.MyRecyclerviewInterface
 import kr.co.everex.progressbarexample.adapter.ExplainExerciseListAdapter
-import kr.co.everex.progressbarexample.databinding.ActivityProgressBarInItemBinding
 import kr.co.everex.progressbarexample.databinding.ActivityProgressBarInRecyclerViewBinding
 import kr.co.everex.progressbarexample.model.ExplainExerciseListModel
 import java.util.*
+import android.os.CountDownTimer
+import kotlin.properties.Delegates
 
 class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInterface {
     private lateinit var binding: ActivityProgressBarInRecyclerViewBinding
@@ -29,12 +28,28 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     private val scope = CoroutineScope(Dispatchers.Main)
 
 
+
+
     // 스톱워치 변수
     private var time = 0
-//    private var isRunning = false
-    private var timerTask: Timer? = null
+    private var sec = 0
+    private var isRunning = false
+
+    private var downTimerTask: CountDownTimer? = null
+
+    // 준비
+    private var readyTimerTask: Timer? = null
+
+    // 운동
+    private var exerciseTimerTask: Timer? = null
 
 
+
+    // 일시정지 함수
+//    private fun pause() {
+//        binding.fabStart.text = "시작" // 텍스트 시작으로 변경
+//        timerTask?.cancel()
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,16 +57,26 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         val view = binding.root
         setContentView(view) // 뷰 바인딩 적용 완료
 
+        // 시작 일시 정지
+        binding.controlButton.setOnClickListener{
+//            isRunning = !isRunning
+//            if (isRunning) ready() else pause()
+        }
+
+
         /**
          * 리사이클러뷰 세팅  ------------------------------------------------------------
          */
         for (i in 1..5){
             val imageUri = numberImageWhen(i)
-            Log.e(TAG, "imageUri = $imageUri")
+            val readyProgressMaxValue = readyProgressDataWhen(i)
+            val exerciseProgressMaxValue = exerciseProgressDataWhen(i)
 
             val explainExerciseListModel = ExplainExerciseListModel(
-                    exerciseName = "Exercise $i",
-                    exerciseImage = imageUri
+                exerciseName = "Exercise $i",
+                exerciseImage = imageUri,
+                readyProgressMaxValue = readyProgressMaxValue,
+                exerciseProgressMaxValue = exerciseProgressMaxValue,
             )
             this.modelList.add(explainExerciseListModel)
         }
@@ -69,6 +94,8 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         // 리사이클러뷰 세팅 완료 후 작업 ------------------------------------------------------------
         ready()
 
+//        var downTimerTask = CountDownTimer(40000, 1000){
+//        }.start()
 
 
     }// onCreate 끝
@@ -84,22 +111,28 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
      */
     fun ready(){
         val readyToProgressBar = scope.launch {
-            timerTask = kotlin.concurrent.timer(period = 10) {
+            readyTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
-                ProgressBarInItemActivity.timeData.sec = time / 100   // 초 단위 값
-                ProgressBarInItemActivity.timeData.milli = time % 100 // (나머지 값) : 0 ~ 99 값
+                sec = time / 100   // 초 단위 값
 
                 // 5.0 초 가 되는 순간, timerTask 중단 하고 Exercies progress 재생
-                if(ProgressBarInItemActivity.timeData.sec == 5){
+                if(sec == 5){
                     runOnUiThread {
+                        // 데이터 초기화
+                        time = 0
+                        sec = 0
                         modelList[0].readyProgressValue = 0
+                        modelList[0].readyIsRunning = false
+                        // 데이터 적용
                         explainExerciseListAdapter.submitList(modelList)
                         explainExerciseListAdapter.notifyDataSetChanged()
-                        timerTask?.cancel()
+                        readyTimerTask?.cancel()
+                        play() // 운동 progress bar 시작
                     }
                 }
                 runOnUiThread {
                     // 0.01초 마다 변경됨
+                    modelList[0].readyIsRunning = true
                     modelList[0].readyProgressValue += 1
                     explainExerciseListAdapter.submitList(modelList)
                     explainExerciseListAdapter.notifyDataSetChanged()
@@ -108,13 +141,45 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         }
         readyToProgressBar.isActive
     }
+    /**
+     * main progress 코루틴
+     */
+    fun play(){
+        val playToProgressBar = scope.launch {
+            exerciseTimerTask = kotlin.concurrent.timer(period = 10) {
+                time++ // 계속 변경됨
+                sec = time / 100   // 초 단위 값
 
+                if(sec == 10){  // 10초
+                    runOnUiThread {
+                        // 데이터 초기화
+                        time = 0
+                        sec = 0
+                        modelList[0].exerciseProgressValue = 0
+                        modelList[0].exerciseIsRunning = false
+                        // 데이터 적용
+                        explainExerciseListAdapter.submitList(modelList)
+                        explainExerciseListAdapter.notifyDataSetChanged()
+                        exerciseTimerTask?.cancel()
+                    }
+                }
+                runOnUiThread {
+                    // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
+                    modelList[0].exerciseIsRunning = true
+                    modelList[0].exerciseProgressValue += 1
+                    explainExerciseListAdapter.submitList(modelList)
+                    explainExerciseListAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+        playToProgressBar.isActive
+    }
 
 
 
 
     /**
-     * 리사이클러뷰 리스트 기능
+     * 리사이클러뷰 리스트 데이터 설정
      */
     private fun numberImageWhen(a: Any): String {
         val value = when (a) {
@@ -128,6 +193,32 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         }
         return value
     }
+    // 준비 시간
+    private fun readyProgressDataWhen(a: Any): Int {
+        val value = when (a) {
+            1 -> 500
+            2 -> 1000
+            3 -> 700
+            4 -> 1000
+            5 -> 800
+            else -> 1000
+        }
+        return value
+    }
+    // 실제 운동 시간
+    private fun exerciseProgressDataWhen(a: Any): Int {
+        val value = when (a) {
+            1 -> 1000
+            2 -> 1500
+            3 -> 5000 // 50초
+            4 -> 2000
+            5 -> 3000
+            else -> 1000
+        }
+        return value
+    }
+
+
 
     override fun onItemClicked(position: Int) {
         Log.d(TAG, "ExplainExerciseActivity - onItemClicked() called / position: $position")

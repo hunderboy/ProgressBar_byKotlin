@@ -41,8 +41,7 @@ class ExplainExerciseListViewHolder (itemView: View,
         this.myRecyclerviewInterface = recyclerviewInterface
     }
 
-    // adpater 에서 받은 Model 을 가지고
-    // 데이터와 뷰를 묶는다.
+    // adpater 에서 받은 Model 을 가지고, 데이터와 뷰를 묶는다.
     fun bind(exerciseModel: ExplainExerciseListModel){
         Log.d(TAG, "ExplainExerciseListViewHolder - bind() called")
 
@@ -56,12 +55,21 @@ class ExplainExerciseListViewHolder (itemView: View,
             //.centerCrop()
             .placeholder(R.drawable.loading)
             .into(exerciseImageView)
+        /**--------------------------------------------------**/
 
-        exerciseProgressBar.secondaryProgress = exerciseModel.readyProgressValue
+//        // Max 값 설정
+//        exerciseProgressBar.max = exerciseModel.readyProgressMaxValue
 
-//        if(exerciseModel.isRunning){
-//            exerciseProgressBar.progress += 1 // 증가
-//        }
+        if(exerciseModel.readyIsRunning){ // 준비 프로그래스 바 진행
+            exerciseProgressBar.max = exerciseModel.readyProgressMaxValue
+            exerciseProgressBar.secondaryProgress = exerciseModel.readyProgressValue
+        }
+        if(exerciseModel.exerciseIsRunning){
+            exerciseProgressBar.max = exerciseModel.exerciseProgressMaxValue
+            exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
+        }
+
+
     }
 
     override fun onClick(p0: View?) {

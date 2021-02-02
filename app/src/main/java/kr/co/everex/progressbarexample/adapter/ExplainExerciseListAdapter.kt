@@ -57,14 +57,5 @@ class ExplainExerciseListAdapter(
         return super.getItemId(position)
     }
 
-//    // 프로그래스바 데이터 연결
-//    fun setProgressBarData(holder: ExplainExerciseListViewHolder, position: Int){
-//        getItemId(position).progress
-//        holder.progressbarChange()
-//    }
-//    // 아이템 세팅을 가져오라
-//    fun getItemSetting(){
-//    }
-
 
 }
