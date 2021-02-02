@@ -5,22 +5,21 @@ package kr.co.everex.progressbarexample.model
  * 2021-01-25
  */
 data class ExplainExerciseListModel(
-    // 이미지
+    // 운동 이미지
     var exerciseImage: String? = null,
-    // 텍스트
+    // 운동 이름
     var exerciseName: String? = null,
-    var exerciseTime: String? = null, // 해당 운동 시간
+    var exerciseTotalTime: Long = 0, // 해당 운동 시간 ex) 600000 값 이면
 
-    // 프로그래스바
+    // 준비 or 운동 프로그래스 진행 여부
     var readyIsRunning: Boolean = false,
     var exerciseIsRunning: Boolean = false,
 
-    // 프로그래스 바 Max 값
+    // progressBar Max(채워져야 할 총 칸 개수) 값
     var readyProgressMaxValue: Int = 0,     // 1000 = 10초
     var exerciseProgressMaxValue: Int = 0,  // 4000 = 40초
 
-    // 프로그래스바 진행 값
-    var readyProgressValue: Int = 0,
-    var exerciseProgressValue: Int = 0,
-
+    // progressBar 진행 값
+    var readyProgressValue: Int = 0,    // 준비 값
+    var exerciseProgressValue: Int = 0, // 진행 값
 )

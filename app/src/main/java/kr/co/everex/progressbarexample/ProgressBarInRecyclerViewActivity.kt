@@ -13,7 +13,7 @@ import kr.co.everex.progressbarexample.databinding.ActivityProgressBarInRecycler
 import kr.co.everex.progressbarexample.model.ExplainExerciseListModel
 import java.util.*
 import android.os.CountDownTimer
-import kotlin.properties.Delegates
+import android.view.View
 
 class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInterface {
     private lateinit var binding: ActivityProgressBarInRecyclerViewBinding
@@ -34,13 +34,13 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     private var time = 0
     private var isRunning = false
     // 카운트 다운
-    private var downTimerTask: CountDownTimer? = null
-
-    // 준비
-    private var readyTimerTask: Timer? = null
-    // 운동
-    private var exerciseTimerTask: Timer? = null
-
+    private var mCountDownTimer: CountDownTimer? = null
+    private var mTimerRunning = false   // 카운트 다운 작동 여부
+    // 카운트 업
+    private var readyTimerTask: Timer? = null   // 준비
+    private var exerciseTimerTask: Timer? = null// 운동
+    // 남은 시간 할당하기
+    private var mTimeLeftInMillis: Long? = 0
 
 
     // 일시정지 함수
@@ -69,12 +69,14 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
             val imageUri = numberImageWhen(i)
             val readyProgressMaxValue = readyProgressDataWhen(i)
             val exerciseProgressMaxValue = exerciseProgressDataWhen(i)
+            val exerciseTotalTime = totalTimeLongWhen(i)
 
             val explainExerciseListModel = ExplainExerciseListModel(
                 exerciseName = "Exercise $i",
                 exerciseImage = imageUri,
                 readyProgressMaxValue = readyProgressMaxValue,
                 exerciseProgressMaxValue = exerciseProgressMaxValue,
+                exerciseTotalTime = exerciseTotalTime,
             )
             this.modelList.add(explainExerciseListModel)
         }
@@ -142,6 +144,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
      */
     fun play(){
         val playToProgressBar = scope.launch {
+            mTimeLeftInMillis = modelList[0].exerciseTotalTime
             exerciseTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
 
@@ -161,12 +164,42 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                     // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
                     modelList[0].exerciseIsRunning = true
                     modelList[0].exerciseProgressValue += 1
+
+
                     explainExerciseListAdapter.submitList(modelList)
                     explainExerciseListAdapter.notifyDataSetChanged()
                 }
             }
         }
         playToProgressBar.isActive
+    }
+
+    // 시작되면 계속 카운트 다운
+    private fun startTimer() {
+        mCountDownTimer = object : CountDownTimer(mTimeLeftInMillis, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                mTimeLeftInMillis = millisUntilFinished
+                updateCountDownText()
+            }
+            override fun onFinish() {
+                mTimerRunning = false
+                binding.buttonStartPause.text = "Start"
+                binding.buttonStartPause.visibility = View.INVISIBLE
+                binding.buttonReset.visibility = View.VISIBLE
+            }
+        }.start()
+
+        mTimerRunning = true
+    }
+
+    // 시간 Text 업데이트
+    private fun updateCountDownText(timeLeftInMillis:Long) {
+        val minutes = (timeLeftInMillis / 1000).toInt() / 60
+        val seconds = (timeLeftInMillis / 1000).toInt() % 60
+        val timeLeftFormatted: String =
+            java.lang.String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+
+        binding.textViewCountdown.text = timeLeftFormatted
     }
 
 
@@ -187,7 +220,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         }
         return value
     }
-    // 준비 시간
+    // 준비 progressBar Max(채워져야 할 총 칸 개수) 값
     private fun readyProgressDataWhen(a: Any): Int {
         val value = when (a) {
             1 -> 500
@@ -199,7 +232,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         }
         return value
     }
-    // 실제 운동 시간
+    // 운동 progressBar Max(채워져야 할 총 칸 개수) 값
     private fun exerciseProgressDataWhen(a: Any): Int {
         val value = when (a) {
             1 -> 1000
@@ -211,7 +244,18 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         }
         return value
     }
-
+    // 실제 운동 시간
+    private fun totalTimeLongWhen(a: Any): Long {
+        val value = when (a) {
+            1 -> 10000 // 10초
+            2 -> 13000 // 13초
+            3 -> 50000 // 50초
+            4 -> 15000
+            5 -> 30000
+            else -> 1000
+        }
+        return value.toLong()
+    }
 
 
     override fun onItemClicked(position: Int) {

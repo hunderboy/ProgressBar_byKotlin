@@ -10,6 +10,7 @@ import kr.co.everex.progressbarexample.info.App
 import kr.co.everex.progressbarexample.model.ExplainExerciseListModel
 import kotlinx.android.synthetic.main.item_explain_exercies.view.*
 import java.time.temporal.TemporalAmount
+import java.util.*
 
 
 /**
@@ -26,6 +27,8 @@ class ExplainExerciseListViewHolder (itemView: View,
 
     private val exerciseImageView = itemView.exercise_img
     private val exerciseNameTextView = itemView.exercise_name_txt
+    private val exerciseTotalTimeTextView = itemView.exercise_total_time
+
     // 프로그래스 바
     private val exerciseProgressBar = itemView.progressBar_exercise_item
 
@@ -57,14 +60,19 @@ class ExplainExerciseListViewHolder (itemView: View,
             .into(exerciseImageView)
         /**--------------------------------------------------**/
 
-//        // Max 값 설정
-//        exerciseProgressBar.max = exerciseModel.readyProgressMaxValue
 
-        if(exerciseModel.readyIsRunning){ // 준비 프로그래스 바 진행
+
+        // 준비 프로그래스 바 진행
+        if(exerciseModel.readyIsRunning){
+            updateCountDownText(exerciseModel.exerciseTotalTime)
             exerciseProgressBar.max = exerciseModel.readyProgressMaxValue
             exerciseProgressBar.secondaryProgress = exerciseModel.readyProgressValue
         }
+        // 운동 프로그래스 바 진행
         if(exerciseModel.exerciseIsRunning){
+
+            updateCountDownText(exerciseModel.exerciseTotalTime)
+
             exerciseProgressBar.max = exerciseModel.exerciseProgressMaxValue
             exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
         }
@@ -78,4 +86,13 @@ class ExplainExerciseListViewHolder (itemView: View,
         this.myRecyclerviewInterface?.onItemClicked(adapterPosition)
     }
 
+    // 시간 Text 업데이트
+    private fun updateCountDownText(timeLeftInMillis:Long) {
+        val minutes = (timeLeftInMillis / 1000).toInt() / 60
+        val seconds = (timeLeftInMillis / 1000).toInt() % 60
+        val timeLeftFormatted: String =
+            java.lang.String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+
+        exerciseTotalTimeTextView.text = timeLeftFormatted
+    }
 }
