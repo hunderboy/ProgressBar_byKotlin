@@ -10,4 +10,11 @@ data class ExplainExerciseListModel(
     // 텍스트
     var exerciseName: String? = null,
     var exerciseTime: String? = null,
+
+    // 프로그래스바
+    var isRunning: Boolean = false,
+    var readyProgressValue: Int = 0,
+    var exerciseProgressValue: Int = 0,
+
+
 )

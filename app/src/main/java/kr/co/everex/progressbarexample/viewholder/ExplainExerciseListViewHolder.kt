@@ -9,6 +9,7 @@ import kr.co.everex.progressbarexample.`interface`.MyRecyclerviewInterface
 import kr.co.everex.progressbarexample.info.App
 import kr.co.everex.progressbarexample.model.ExplainExerciseListModel
 import kotlinx.android.synthetic.main.item_explain_exercies.view.*
+import java.time.temporal.TemporalAmount
 
 
 /**
@@ -25,6 +26,8 @@ class ExplainExerciseListViewHolder (itemView: View,
 
     private val exerciseImageView = itemView.exercise_img
     private val exerciseNameTextView = itemView.exercise_name_txt
+    // 프로그래스 바
+    private val exerciseProgressBar = itemView.progressBar_exercise_item
 
     // 리사이클러뷰 인터페이스 상속
     private var myRecyclerviewInterface : MyRecyclerviewInterface? = null
@@ -50,10 +53,15 @@ class ExplainExerciseListViewHolder (itemView: View,
         Glide
             .with(App.getApplicationContext())
             .load(exerciseModel.exerciseImage)
-//            .centerCrop()
+            //.centerCrop()
             .placeholder(R.drawable.loading)
             .into(exerciseImageView)
 
+        exerciseProgressBar.secondaryProgress = exerciseModel.readyProgressValue
+
+//        if(exerciseModel.isRunning){
+//            exerciseProgressBar.progress += 1 // 증가
+//        }
     }
 
     override fun onClick(p0: View?) {

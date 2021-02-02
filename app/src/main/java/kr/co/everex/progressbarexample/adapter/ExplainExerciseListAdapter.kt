@@ -35,12 +35,10 @@ class ExplainExerciseListAdapter(
         parent: ViewGroup,
         viewType: Int
     ): ExplainExerciseListViewHolder {
-
         // 연결할 레이아웃 설정
         return ExplainExerciseListViewHolder(
             LayoutInflater.from(parent.context).
         inflate(R.layout.item_explain_exercies, parent, false), this.myRecyclerviewInterface!!)
-
     }
 
     // 뷰와 뷰홀더가 묶였을때
@@ -48,7 +46,6 @@ class ExplainExerciseListAdapter(
         Log.d(TAG, "ExplainExerciseListAdapter - onBindViewHolder() called / position: $position")
         // bind 할때, Model 데이터를 넘긴다.
         holder.bind(this.modelList[position])
-
     }
 
     // 목록의 아이템수
@@ -56,6 +53,18 @@ class ExplainExerciseListAdapter(
         return this.modelList.size
     }
 
+    override fun getItemId(position: Int): Long {
+        return super.getItemId(position)
+    }
+
+//    // 프로그래스바 데이터 연결
+//    fun setProgressBarData(holder: ExplainExerciseListViewHolder, position: Int){
+//        getItemId(position).progress
+//        holder.progressbarChange()
+//    }
+//    // 아이템 세팅을 가져오라
+//    fun getItemSetting(){
+//    }
 
 
 }
