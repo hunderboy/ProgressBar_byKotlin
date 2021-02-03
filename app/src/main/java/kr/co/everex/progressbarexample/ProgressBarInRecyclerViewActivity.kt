@@ -31,10 +31,10 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
 
     // 스톱워치 변수
     private var time = 0
-    private var isRunning = false
+    private var isRunning = false // 운동 진행중 여부
     // 카운트 다운
     private var mCountDownTimer: CountDownTimer? = null
-    private var mTimerRunning = false   // 카운트 다운 작동 여부
+    private var countDownTimerRunning = false   // 카운트 다운 작동 여부
     // 카운트 업
     private var readyTimerTask: Timer? = null   // 준비
     private var exerciseTimerTask: Timer? = null// 운동
@@ -48,10 +48,13 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         val view = binding.root
         setContentView(view) // 뷰 바인딩 적용 완료
 
-        // 시작 일시 정지
+        // 시작 or 일시 정지
         binding.controlButton.setOnClickListener{
-//            isRunning = !isRunning
-//            if (isRunning) ready() else pause()
+            if (isRunning) { // 카운트 중
+                pause()
+            } else {    // 카운트 중 아님
+                restart()
+            }
         }
 
 
@@ -92,12 +95,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     }// onCreate 끝
 
 
-    // 일시정지 함수
-//    private fun pause() {
-//        binding.fabStart.text = "시작" // 텍스트 시작으로 변경
-//        timerTask?.cancel()
-//    }
-
 
 
 
@@ -109,6 +106,8 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
      *
      */
     fun ready(){
+        isRunning = true
+        mTimeLeftInMillis = modelList[0].exerciseTimeValue // 남은시간 밀리초 초기 설정
         val readyToProgressBar = scope.launch {
             readyTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
@@ -124,6 +123,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                         explainExerciseListAdapter.submitList(modelList)
                         explainExerciseListAdapter.notifyDataSetChanged()
                         readyTimerTask?.cancel()
+
                         play() // 운동 progress bar 시작
                         exerciseCountDownTimer() // 카운트 다운 타이머 시작
                     }
@@ -143,6 +143,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
      * main progress 코루틴
      */
     fun play(){
+        countDownTimerRunning = true // 카운트 다운 on
         val playToProgressBar = scope.launch {
             exerciseTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
@@ -154,6 +155,8 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                         modelList[0].exerciseProgressValue = 0
                         modelList[0].exerciseIsRunning = false
                         modelList[0].exerciseTimeValue = modelList[0].exerciseTotalTime
+                        countDownTimerRunning = false
+
                         // 데이터 적용
                         explainExerciseListAdapter.submitList(modelList)
                         explainExerciseListAdapter.notifyDataSetChanged()
@@ -176,9 +179,8 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
      * 카운트 다운
      */
     private fun exerciseCountDownTimer(){
-        mTimeLeftInMillis = modelList[0].exerciseTimeValue
         val countDown = scope.launch {
-            delay(1000)
+            delay(1000) // 1초 딜레이 후 실행
             mCountDownTimer = object : CountDownTimer(mTimeLeftInMillis!!, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
                     mTimeLeftInMillis = millisUntilFinished
@@ -194,7 +196,32 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     }
 
 
+    // 일시정지 함수
+    private fun pause() {
+        binding.controlButton.text = "시작"
+        isRunning = false
 
+        mCountDownTimer?.cancel()   // 카운트다운 타이머 중지
+        readyTimerTask?.cancel()    // 준비 프로그래스바 중지
+        exerciseTimerTask?.cancel() // 운동 프로그래스바 중지
+    }
+
+    private fun restart() {
+        binding.controlButton.text = "일시정지"
+        isRunning = true
+
+        Log.e("readyIsRunning = ", modelList[0].readyIsRunning.toString())
+
+        if(countDownTimerRunning){ // 카운트 타이머 동작중 여부 확인
+            exerciseCountDownTimer() // 카운트다운 타이머 재진행
+        }
+        if(modelList[0].readyIsRunning){    // 준비 프로그래스바 작동중
+            ready()
+        }
+        if(modelList[0].exerciseIsRunning){ // 운동 프로그래스바 작동중
+            play()
+        }
+    }
 
 
 
