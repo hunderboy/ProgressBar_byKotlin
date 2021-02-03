@@ -112,6 +112,8 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
             readyTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
 
+                modelList[0].readyIsRunning = true
+
                 // 5.0 초 가 되는 순간, timerTask 중단 하고 Exercies progress 재생
                 if(time == modelList[0].readyProgressMaxValue){
                     runOnUiThread {
@@ -130,7 +132,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                 }
                 runOnUiThread {
                     // 0.01초 마다 변경됨
-                    modelList[0].readyIsRunning = true
+//                    modelList[0].readyIsRunning = true
                     modelList[0].readyProgressValue += 1
                     explainExerciseListAdapter.submitList(modelList)
                     explainExerciseListAdapter.notifyDataSetChanged()
@@ -180,7 +182,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
      */
     private fun exerciseCountDownTimer(){
         val countDown = scope.launch {
-            delay(1000) // 1초 딜레이 후 실행
             mCountDownTimer = object : CountDownTimer(mTimeLeftInMillis!!, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
                     mTimeLeftInMillis = millisUntilFinished
