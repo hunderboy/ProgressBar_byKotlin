@@ -26,16 +26,15 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     // 코루틴 scope
     private val scope = CoroutineScope(Dispatchers.Main)
 
-
-    // 스톱워치 변수
-    private var time = 0
+    // 전역 변수
+    private var time = 0    // 시간 변수. 0.01초 단위 = kotlin.concurrent.timer(period = 10)
     private var isRunning = false // 운동 진행중 여부
-    // 카운트 다운
-    private var mCountDownTimer: CountDownTimer? = null
     private var countDownTimerRunning = false   // 카운트 다운 작동 여부
-    // 카운트 업
-    private var readyTimerTask: Timer? = null   // 준비
-    private var exerciseTimerTask: Timer? = null// 운동
+
+    // 타이머 Task
+    private var readyTimerTask: Timer? = null       // 준비 타이머 Task
+    private var exerciseTimerTask: Timer? = null        // 운동 타이머 Task
+    private var mCountDownTimer: CountDownTimer? = null // 카운트 다운 타이머 Task
     // 남은 시간 할당하기
     private var mTimeLeftInMillis: Long? = 0
 
@@ -87,7 +86,10 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         }
 
         // 리사이클러뷰 세팅 완료 후 작업 ------------------------------------------------------------
-        ready()
+//        ready()
+//        for (a in 0..4){
+//            ready(a)
+//        }
 
 
     }// onCreate 끝

@@ -16,11 +16,12 @@ import java.util.*
  * 2021-01-25
  * 운동 커리큘럼 리스트 리사이클러뷰 뷰홀더
  */
-class ExplainExerciseListViewHolder (itemView: View,
-                                    recyclerviewInterface: MyRecyclerviewInterface // 인터페이스 상속
+class ExplainExerciseListViewHolder (
+    itemView: View,
+    recyclerviewInterface: MyRecyclerviewInterface // 인터페이스 상속
 ):
-                                    RecyclerView.ViewHolder(itemView),
-                                    View.OnClickListener
+    RecyclerView.ViewHolder(itemView),
+    View.OnClickListener
 {
     val TAG: String = "로그"
 
@@ -81,7 +82,6 @@ class ExplainExerciseListViewHolder (itemView: View,
             exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
         }
 
-
     }
 
     override fun onClick(p0: View?) {
@@ -99,4 +99,6 @@ class ExplainExerciseListViewHolder (itemView: View,
 
         exerciseTotalTimeTextView.text = timeLeftFormatted
     }
+
+
 }
