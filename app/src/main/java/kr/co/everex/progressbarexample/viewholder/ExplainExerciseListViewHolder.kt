@@ -66,10 +66,18 @@ class ExplainExerciseListViewHolder (itemView: View,
         if(exerciseModel.readyIsRunning){
             exerciseProgressBar.max = exerciseModel.readyProgressMaxValue
             exerciseProgressBar.secondaryProgress = exerciseModel.readyProgressValue
+        } else{
+            // readyIsRunning = false
+            // readyProgressValue = 0 값이 설정 되므로, secondaryProgress = 0(초기화) 된다.
+            exerciseProgressBar.secondaryProgress = exerciseModel.readyProgressValue
         }
         // 운동 프로그래스 바 진행
         if(exerciseModel.exerciseIsRunning){
             exerciseProgressBar.max = exerciseModel.exerciseProgressMaxValue
+            exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
+        } else{
+            // exerciseIsRunning = false
+            // exerciseProgressValue = 0 값이 설정 되므로, Progress = 0(초기화) 된다.
             exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
         }
 

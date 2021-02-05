@@ -13,12 +13,10 @@ import kr.co.everex.progressbarexample.databinding.ActivityProgressBarInRecycler
 import kr.co.everex.progressbarexample.model.ExplainExerciseListModel
 import java.util.*
 import android.os.CountDownTimer
-import android.view.View
-import kotlinx.coroutines.delay
 
 class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInterface {
     private lateinit var binding: ActivityProgressBarInRecyclerViewBinding
-    val TAG: String = "로그"
+    private val TAG: String = "로그"
 
 
     // 리사이클러뷰 데이터 리스트
@@ -108,11 +106,10 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     fun ready(){
         isRunning = true
         mTimeLeftInMillis = modelList[0].exerciseTimeValue // 남은시간 밀리초 초기 설정
+        modelList[0].readyIsRunning = true
         val readyToProgressBar = scope.launch {
             readyTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
-
-                modelList[0].readyIsRunning = true
 
                 // 5.0 초 가 되는 순간, timerTask 중단 하고 Exercies progress 재생
                 if(time == modelList[0].readyProgressMaxValue){
@@ -129,13 +126,13 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                         play() // 운동 progress bar 시작
                         exerciseCountDownTimer() // 카운트 다운 타이머 시작
                     }
-                }
-                runOnUiThread {
-                    // 0.01초 마다 변경됨
-//                    modelList[0].readyIsRunning = true
-                    modelList[0].readyProgressValue += 1
-                    explainExerciseListAdapter.submitList(modelList)
-                    explainExerciseListAdapter.notifyDataSetChanged()
+                } else {
+                    runOnUiThread {
+                        // 0.01초 마다 변경됨
+                        modelList[0].readyProgressValue += 1
+                        explainExerciseListAdapter.submitList(modelList)
+                        explainExerciseListAdapter.notifyDataSetChanged()
+                    }
                 }
             }
         }
@@ -146,17 +143,19 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
      */
     fun play(){
         countDownTimerRunning = true // 카운트 다운 on
+        modelList[0].exerciseIsRunning = true
         val playToProgressBar = scope.launch {
             exerciseTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
 
                 if(time == modelList[0].exerciseProgressMaxValue){  // 10초
                     runOnUiThread {
+                        mCountDownTimer?.cancel() // 카운트 다운 타이머 중지
                         // 데이터 초기화
                         time = 0
                         modelList[0].exerciseProgressValue = 0
-                        modelList[0].exerciseIsRunning = false
                         modelList[0].exerciseTimeValue = modelList[0].exerciseTotalTime
+                        modelList[0].exerciseIsRunning = false
                         countDownTimerRunning = false
 
                         // 데이터 적용
@@ -164,13 +163,13 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                         explainExerciseListAdapter.notifyDataSetChanged()
                         exerciseTimerTask?.cancel()
                     }
-                }
-                runOnUiThread {
-                    // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
-                    modelList[0].exerciseIsRunning = true
-                    modelList[0].exerciseProgressValue += 1
-                    explainExerciseListAdapter.submitList(modelList)
-                    explainExerciseListAdapter.notifyDataSetChanged()
+                } else{
+                    runOnUiThread {
+                        // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
+                        modelList[0].exerciseProgressValue += 1
+                        explainExerciseListAdapter.submitList(modelList)
+                        explainExerciseListAdapter.notifyDataSetChanged()
+                    }
                 }
             }
         }
@@ -211,7 +210,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         binding.controlButton.text = "일시정지"
         isRunning = true
 
-        Log.e("readyIsRunning = ", modelList[0].readyIsRunning.toString())
 
         if(countDownTimerRunning){ // 카운트 타이머 동작중 여부 확인
             exerciseCountDownTimer() // 카운트다운 타이머 재진행

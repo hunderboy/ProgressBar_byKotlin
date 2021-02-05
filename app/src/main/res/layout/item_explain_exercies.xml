@@ -14,8 +14,6 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp">
 
-
-
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/exercise_img"
             android:layout_width="60dp"
@@ -36,7 +34,6 @@
             android:layout_height="60dp"
             android:layout_marginStart="29dp"
             android:gravity="center"
-
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/exercise_img"
@@ -48,7 +45,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginBottom="7dp"
-
                 android:text="Knee Slide"
                 android:textAppearance="@style/TextStyle_MultipleSelection" />
 
@@ -56,34 +52,31 @@
                 android:id="@+id/exercise_total_time"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-
                 android:text="00:00"
                 android:textAppearance="@style/TextStyle_MultipleSelection" />
 
-
         </LinearLayout>
-
-
-
-        <ProgressBar
-            android:id="@+id/progressBar_exercise_item"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:indeterminate="false"
-            android:max="500"
-
-            android:maxHeight="60dp"
-            android:minHeight="60dp"
-
-            android:secondaryProgress="0"
-            android:progress="0"
-            android:progressDrawable="@drawable/progress_tranperency"
-
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <ProgressBar
+        android:id="@+id/progressBar_exercise_item"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="false"
+        android:max="1000"
+
+        android:maxHeight="60dp"
+        android:minHeight="60dp"
+
+        android:secondaryProgress="0"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress_tranperency"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
 </androidx.cardview.widget.CardView>
