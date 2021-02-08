@@ -320,14 +320,14 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
 
 
     /**
-     * 1개로 합쳐서 플레이한다.
-     * 운동 progress 컨트롤
+     * 운동 카운트 다운 초기화 메소드
      */
     private fun initexerciseCountDown2(a: Int){
         countDownTimerRunning = true // 카운트 다운 on
         modelList[a].exerciseIsRunning = true
         previousTime = modelList[a].exerciseTotalTime
 
+        // 초기화 작업 진행 후 카운트 다운 실행
         exerciseCountDown2(a)
     }
 
@@ -363,45 +363,19 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
 
                     runOnUiThread {
                         previousTime = currentTime
-                        Log.e("previousTime = ", previousTime.toString())
-                        Log.e("currentTime = ", currentTime.toString())
+
                         // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
                         modelList[a].exerciseProgressValue += gap // gap 만큼 더한다
                         explainExerciseListAdapter.submitList(modelList)
                         explainExerciseListAdapter.notifyDataSetChanged() // 데이터 적용
                     }
+                }// onTick 끝
 
 
 
-//                    if(time == modelList[a].exerciseProgressMaxValue){  // 10초
-//                        runOnUiThread {
-//                            // 카운트 다운 타이머 중지
-//                            mCountDownTimer?.cancel()
-//                            // 데이터 초기화
-//                            time = 0
-//                            modelList[a].exerciseProgressValue = 0
-//                            modelList[a].exerciseTimeValue = modelList[a].exerciseTotalTime
-//                            modelList[a].exerciseIsRunning = false
-//                            countDownTimerRunning = false
-//                            // 데이터 적용
-//                            explainExerciseListAdapter.submitList(modelList)
-//                            // 다음 운동 실행
-//                            callExercise(a + 1)
-//                        }
-//                    } else{
-//                        runOnUiThread {
-//                            previousTime = currentTime
-//                            // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
-//                            modelList[a].exerciseProgressValue += gap // gap 만큼 더한다
-//                            explainExerciseListAdapter.submitList(modelList)
-//                        }
-//                    }
-//                    explainExerciseListAdapter.notifyDataSetChanged() // 데이터 적용
-                }
+
+                // 타이머 종료시에만 작동함
                 override fun onFinish() {
-                    // 이 finish 가
-                    // 1. 모든 프로세스가 끝났을때만 나오는지?
-                    // 2. cancel 상황시에 무조건 뜨는 건지?? (일시중지 상황에서도 뜨는 건가?) = 그렇지 않은 것 같다
                     Log.e("finish = ","확인")
 
                     runOnUiThread {
@@ -477,7 +451,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         return value.toLong()
     }
 
-
+    // 클릭 리스너
     override fun onItemClicked(position: Int) {
         Log.d(TAG, "ExplainExerciseActivity - onItemClicked() called / position: $position")
     }
