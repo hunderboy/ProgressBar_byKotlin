@@ -16,7 +16,7 @@ data class ExplainExerciseListModel(
     var readyIsRunning: Boolean = false,
     var exerciseIsRunning: Boolean = false,
 
-    // progressBar Max(채워져야 할 총 칸 개수) 값 = (고정값)
+    // progressBar Max(채워져야 할 총 칸 개수) 값 = (고정값), 1초에 100칸 할당
     var readyProgressMaxValue: Int = 0,     // ex)1000 = 10초
     var exerciseProgressMaxValue: Int = 0,  // ex)4000 = 40초
 

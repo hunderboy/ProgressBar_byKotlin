@@ -76,6 +76,7 @@ class ExplainExerciseListViewHolder (
         if(exerciseModel.exerciseIsRunning){
             exerciseProgressBar.max = exerciseModel.exerciseProgressMaxValue
             exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
+            Log.e("exerciseProgressBar = ", exerciseProgressBar.progress.toString())
         } else{
             // exerciseIsRunning = false
             // exerciseProgressValue = 0 값이 설정 되므로, Progress = 0(초기화) 된다.
