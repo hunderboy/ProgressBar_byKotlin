@@ -18,7 +18,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     private lateinit var binding: ActivityProgressBarInRecyclerViewBinding
     private val TAG: String = "로그"
 
-
     // 리사이클러뷰 데이터 리스트
     var modelList = ArrayList<ExplainExerciseListModel>()
     private lateinit var explainExerciseListAdapter: ExplainExerciseListAdapter
@@ -26,61 +25,30 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     // 코루틴 scope
     private val scope = CoroutineScope(Dispatchers.Main)
 
+    // 기타
+    private var exerciseTimerTask: Timer? = null        // 운동 타이머 Task
+    private var countDownTimerRunning = false   // 카운트 다운 작동 여부
+    private var mTimeLeftInMillis: Long? = 0 // 운동 남아있는 시간
+
+
     // 전역 변수
     private var time = 0    // 시간 변수. 0.01초 단위 = kotlin.concurrent.timer(period = 10)
-    private var isRunning = false // 운동 진행중 여부
-    private var countDownTimerRunning = false   // 카운트 다운 작동 여부
+    private var isRunning = false // 동작여부. 일시정지,재시작에 사용됨
     private var currentIndex = 0 // 현재 인덱스
 
     // 타이머 Task
     private var readyTimerTask: Timer? = null       // 준비 타이머 Task
-    private var exerciseTimerTask: Timer? = null        // 운동 타이머 Task
     private var mCountDownTimer: CountDownTimer? = null // 카운트 다운 타이머 Task
-    // 남은 시간 할당하기
-    private var mTimeLeftInMillis: Long? = 0
+
+
 
     // 이전 남은 시간
     private var previousTime: Long? = null
     // 현재 남은 시간
-    private var currentTime: Long? = null
+    private var currentLeftTime: Long? = null
     // gap
     private var gap: Int = 0
 
-
-
-    /** 운동 콜 함수.
-      사이즈 5 일경우
-      a = 0 1 2 3 4 설정됨.
-
-     */
-    private fun callExercise(a: Int){
-        return when (a) {
-            0 -> {
-                ready(0) // 10초
-                currentIndex = 0
-            }
-            1 -> {
-                ready(1)
-                currentIndex = 1
-            } // 10초
-            2 -> {
-                ready(2) // 13초
-                currentIndex = 2
-            }
-            3 -> {
-                ready(3) // 50초
-                currentIndex = 3
-            }
-            4 -> {
-                ready(4)
-                currentIndex = 4
-            }
-            else -> {
-                ready(a)
-                currentIndex = a
-            }
-        }
-    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,9 +67,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         }
 
 
-        /**
-         * 리사이클러뷰 세팅  ------------------------------------------------------------
-         */
+        /**  리사이클러뷰 세팅  ----------------------------------------------------------- */
         for (i in 1..5){
             val imageUri = numberImageWhen(i)
             val readyProgressMaxValue = readyProgressDataWhen(i)
@@ -133,33 +99,55 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
             adapter = explainExerciseListAdapter
         }
 
-        // 리사이클러뷰 세팅 완료 후 작업 ------------------------------------------------------------
-//        ready()
-        // index = 0 번째 운동 시작
-        callExercise(0)
-//        for (a in 0..4){
-//            ready(a)
-//        }
 
+        /**  리사이클러뷰 세팅 완료 후 작업 ----------------------------------------------------------- */
+        callExercise(0) // index = 0 번째 운동 시작
 
     }// onCreate 끝
 
 
+    /**
+     * 일시정지
+     */
+    private fun pause() {
+        binding.controlButton.text = "시작"
+        isRunning = false
+
+        mCountDownTimer?.cancel()   // 카운트다운 타이머 중지
+        readyTimerTask?.cancel()    // 준비 프로그래스바 중지
+        exerciseTimerTask?.cancel() // 운동 프로그래스바 중지
+    }
+    /**
+     * 재 시작
+     */
+    private fun restart(a: Int) {
+        binding.controlButton.text = "일시정지"
+        isRunning = true
+
+        if(modelList[a].readyIsRunning){    // 준비 프로그래스바 작동중
+            readyProgress(a)
+        }
+        else if(modelList[a].exerciseIsRunning){ // 운동 프로그래스바 작동중
+            exerciseProgress(a)
+        }
+    }
 
 
 
     /**
-     * ready progress 코루틴 비동기 처리
-     * 각 아이템의 프로그래스 바를 실행 시킨다.
-     * 맨 첫번째 아이템의 프로그래스바 실행 시킨후 실행이 끝나면
-     * 그다음 index 의 아이템의 프로그래스 바를 실행시킨다.
-     *
+     * ready progress 초기화 함수
      */
-    private fun ready(a: Int){
+    private fun initReadyProgress(a: Int){
         isRunning = true
-        mTimeLeftInMillis = modelList[a].exerciseTimeValue // 남은시간 밀리초 초기 설정
         modelList[a].readyIsRunning = true
-        val readyToProgressBar = scope.launch {
+
+        readyProgress(a) // 초기화 작업 진행 후, getReady 실행
+    }
+    /**
+     *  각 Item의 Progress Bar 의 secondary progress 을 진행.( = 준비중 의미)
+     */
+    private fun readyProgress(a: Int){
+        val readyToExercise = scope.launch {
             readyTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
 
@@ -170,127 +158,143 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                         time = 0
                         modelList[a].readyProgressValue = 0
                         modelList[a].readyIsRunning = false
-                        // 데이터 적용
-                        explainExerciseListAdapter.submitList(modelList)
-                        explainExerciseListAdapter.notifyDataSetChanged()
-                        readyTimerTask?.cancel()
-
-//                        play(a) // 운동 progress bar 시작
-//                        exerciseCountDownTimer(a) // 카운트 다운 타이머 시작
-//                        exerciseCountDown2(a)
-                        initexerciseCountDown2(a)
+                        changeItemData(modelList) // 데이터 변경 적용
+                        readyTimerTask?.cancel() // readyProgress 종료
+                        initExerciseProgress(a) // 운동 프로그래스 초기화 함수로 이동
                     }
                 } else {
                     runOnUiThread {
-                        // 0.01초 마다 변경됨
                         modelList[a].readyProgressValue += 1
-                        explainExerciseListAdapter.submitList(modelList)
-                        explainExerciseListAdapter.notifyDataSetChanged()
+                        changeItemData(modelList) // 데이터 변경 적용
                     }
                 }
             }
         }
-        readyToProgressBar.isActive
+        readyToExercise.isActive
     }
-    /**
-     * main progress 코루틴
-     */
-    private fun play(a: Int){
-        countDownTimerRunning = true // 카운트 다운 on
-        modelList[a].exerciseIsRunning = true
-        val playToProgressBar = scope.launch {
-            exerciseTimerTask = kotlin.concurrent.timer(period = 10) {
-                time++ // 계속 변경됨
 
-                if(time == modelList[a].exerciseProgressMaxValue){  // 10초
+
+    /**
+     * exercise progress 초기화 함수
+     */
+    private fun initExerciseProgress(a: Int){
+        modelList[a].exerciseIsRunning = true
+
+        previousTime = modelList[a].exerciseTotalTime
+        currentLeftTime = modelList[a].exerciseTimeValue // 남은시간 밀리초 초기 설정
+
+        exerciseProgress(a) // 초기화 작업 진행 후, exerciseProgress 실행
+    }
+
+    private fun exerciseProgress(a: Int){
+        val playExercise = scope.launch {
+            mCountDownTimer = object : CountDownTimer(currentLeftTime!!, 10) { // 0.01초 마다
+                override fun onTick(millisUntilFinished: Long) {
+
+                    currentLeftTime = millisUntilFinished // 0.01초 마다 환산된 값
+                    Log.e("주기에 따른 값 확인 = ", currentLeftTime.toString()) // 1초마다 한번씩 찍힌다
+                    modelList[a].exerciseTimeValue = currentLeftTime!! // 데이터 변화 9980, 9970, 9960, 9950
+
+
+                    //Todo 여기서 새로운 코드 작성 필요
+                    // 이전 측정값 확인
+                    valueConversionByZone(previousTime!!)
+                    // 현재 측정값 확인
+                    valueConversionByZone(currentLeftTime!!)
+
+                    // 현재 측정값 - 이전 측정값 (현재 측정값 >= 이전측정값 , 항상 양수)
+                    gap = valueConversionByZone(currentLeftTime!!) - valueConversionByZone(previousTime!!)
+
+                    if(gap < 0){ // 음수 일경우
+                        gap += 10 // 차이만큼 더한다
+                        // 00 대 넘어 가는 차이 값 생성
+                    }
+
+                    time += gap // 갭 만큼 더해서 유지
+                    Log.e("time = ", time.toString()) // 1초마다 한번씩 찍힌다
+
+
                     runOnUiThread {
-                        mCountDownTimer?.cancel() // 카운트 다운 타이머 중지
+                        previousTime = currentLeftTime
+
+                        // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
+                        modelList[a].exerciseProgressValue += gap // gap 만큼 더한다
+                        // 데이터 변경 적용
+                        changeItemData(modelList)
+                    }
+                }// onTick 끝
+
+
+                // 타이머 종료시에만 작동함
+                override fun onFinish() {
+                    Log.e("finish = ","확인")
+
+                    runOnUiThread {
+                        // 카운트 다운 타이머 중지
+                        mCountDownTimer?.cancel()
                         // 데이터 초기화
                         time = 0
                         modelList[a].exerciseProgressValue = 0
                         modelList[a].exerciseTimeValue = modelList[a].exerciseTotalTime
                         modelList[a].exerciseIsRunning = false
-                        countDownTimerRunning = false
 
-                        // 데이터 적용
-                        explainExerciseListAdapter.submitList(modelList)
-                        explainExerciseListAdapter.notifyDataSetChanged()
-                        exerciseTimerTask?.cancel()
+                        // 데이터 변경 적용
+                        changeItemData(modelList)
 
                         // 다음 운동 실행
                         callExercise(a + 1)
                     }
-                } else{
-                    runOnUiThread {
-                        // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
-                        modelList[a].exerciseProgressValue += 1
-                        explainExerciseListAdapter.submitList(modelList)
-                        explainExerciseListAdapter.notifyDataSetChanged()
-                    }
                 }
-            }
-        }
-        playToProgressBar.isActive
-    }
-
-    /**
-     * 카운트 다운
-     */
-    private fun exerciseCountDownTimer(a: Int){
-        val countDown = scope.launch {
-            mCountDownTimer = object : CountDownTimer(mTimeLeftInMillis!!, 1000) { // 1초 마다
-                // 단위 10milli
-                // 단위 1000milli
-                // 카운트 주기 로직에 맞춰서 log 찍어 봐야
-                override fun onTick(millisUntilFinished: Long) {
-                    mTimeLeftInMillis = millisUntilFinished
-
-                    Log.e("주기에 따른 값 확인 = ", mTimeLeftInMillis.toString()) // 1초마다 한번씩 찍힌다
-
-                    modelList[a].exerciseTimeValue = mTimeLeftInMillis!! // 데이터 변화
-                    explainExerciseListAdapter.submitList(modelList)
-                    explainExerciseListAdapter.notifyDataSetChanged()
-                }
-                override fun onFinish() {}
             }.start()
         }
-        countDown.isActive
+        playExercise.isActive
     }
 
 
-    // 일시정지 함수
-    private fun pause() {
-        binding.controlButton.text = "시작"
-        isRunning = false
-
-        mCountDownTimer?.cancel()   // 카운트다운 타이머 중지
-        readyTimerTask?.cancel()    // 준비 프로그래스바 중지
-        exerciseTimerTask?.cancel() // 운동 프로그래스바 중지
+    private fun changeItemData(arraylist : ArrayList<ExplainExerciseListModel>){
+        explainExerciseListAdapter.submitList(arraylist)
+        explainExerciseListAdapter.notifyDataSetChanged() // 데이터 변경 적용
     }
 
-    private fun restart(a: Int) {
-        binding.controlButton.text = "일시정지"
-        isRunning = true
-
-
-        if(countDownTimerRunning){ // 카운트 타이머 동작중 여부 확인
-//            exerciseCountDownTimer(a) // 카운트다운 타이머 재진행
-            exerciseCountDown2(a)
-        }
-        if(modelList[a].readyIsRunning){    // 준비 프로그래스바 작동중
-            ready(a)
-        }
-        if(modelList[a].exerciseIsRunning){ // 운동 프로그래스바 작동중
-//            play(a)
-            exerciseCountDown2(a)
+    /** 운동 콜 함수. */
+    private fun callExercise(a: Int){
+        return when (a) {
+            0 -> {
+                initReadyProgress(0) // 10초
+                currentIndex = 0
+            }
+            1 -> {
+                initReadyProgress(1)
+                currentIndex = 1
+            } // 10초
+            2 -> {
+                initReadyProgress(2) // 13초
+                currentIndex = 2
+            }
+            3 -> {
+                initReadyProgress(3) // 50초
+                currentIndex = 3
+            }
+            4 -> {
+                initReadyProgress(4)
+                currentIndex = 4
+            }
+            else -> {
+                initReadyProgress(a)
+                currentIndex = a
+            }
         }
     }
-
+    /**
+     * 파라미터 = 남은 Millisecond(:Long)
+     * 파라미터를 Int 화 한후, 마지막 2자리 를 추출 해서
+     * 각 구간에 어디 부분에 포함되는 지에 따라서
+     * assignedValue 을 return 한다
+     */
     private fun valueConversionByZone(leftMillis: Long): Int {
         val paramValue : Int = leftMillis.toInt()
         val twoDigits = paramValue % 100
-        // 할당된 값
-        val assignedValue :Int?
+        val assignedValue :Int? // 할당된 값
 
 
         if (twoDigits in 81..90){ // 81~90 사이에 있다
@@ -315,88 +319,6 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
             assignedValue = 0
         }
         return assignedValue
-    }
-
-
-
-    /**
-     * 운동 카운트 다운 초기화 메소드
-     */
-    private fun initexerciseCountDown2(a: Int){
-        countDownTimerRunning = true // 카운트 다운 on
-        modelList[a].exerciseIsRunning = true
-        previousTime = modelList[a].exerciseTotalTime
-
-        // 초기화 작업 진행 후 카운트 다운 실행
-        exerciseCountDown2(a)
-    }
-
-    private fun exerciseCountDown2(a: Int){
-
-        val countDown = scope.launch {
-            mCountDownTimer = object : CountDownTimer(mTimeLeftInMillis!!, 10) { // 0.01초 마다
-                override fun onTick(millisUntilFinished: Long) {
-
-                    currentTime = millisUntilFinished
-                    mTimeLeftInMillis = millisUntilFinished // 0.01초 마다 환산된 값
-                    Log.e("주기에 따른 값 확인 = ", mTimeLeftInMillis.toString()) // 1초마다 한번씩 찍힌다
-                    modelList[a].exerciseTimeValue = mTimeLeftInMillis!! // 데이터 변화 9980, 9970, 9960, 9950
-
-
-                    //Todo 여기서 새로운 코드 작성 필요
-                    // 이전 측정값 확인
-                    valueConversionByZone(previousTime!!)
-                    // 현재 측정값 확인
-                    valueConversionByZone(currentTime!!)
-
-                    // 현재 측정값 - 이전 측정값 (현재 측정값 >= 이전측정값 , 항상 양수)
-                    gap = valueConversionByZone(currentTime!!) - valueConversionByZone(previousTime!!)
-
-                    if(gap < 0){ // 음수 일경우
-                        gap += 10 // 차이만큼 더한다
-                        // 00 대 넘어 가는 차이 값 생성
-                    }
-
-                    time += gap // 갭 만큼 더해서 유지
-                    Log.e("time = ", time.toString()) // 1초마다 한번씩 찍힌다
-
-
-                    runOnUiThread {
-                        previousTime = currentTime
-
-                        // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
-                        modelList[a].exerciseProgressValue += gap // gap 만큼 더한다
-                        explainExerciseListAdapter.submitList(modelList)
-                        explainExerciseListAdapter.notifyDataSetChanged() // 데이터 적용
-                    }
-                }// onTick 끝
-
-
-
-
-                // 타이머 종료시에만 작동함
-                override fun onFinish() {
-                    Log.e("finish = ","확인")
-
-                    runOnUiThread {
-                        // 카운트 다운 타이머 중지
-                        mCountDownTimer?.cancel()
-                        // 데이터 초기화
-                        time = 0
-                        modelList[a].exerciseProgressValue = 0
-                        modelList[a].exerciseTimeValue = modelList[a].exerciseTotalTime
-                        modelList[a].exerciseIsRunning = false
-                        countDownTimerRunning = false
-                        // 데이터 적용
-                        explainExerciseListAdapter.submitList(modelList)
-                        explainExerciseListAdapter.notifyDataSetChanged() // 데이터 적용
-                        // 다음 운동 실행
-                        callExercise(a + 1)
-                    }
-                }
-            }.start()
-        }
-        countDown.isActive
     }
 
 
@@ -438,7 +360,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
             else -> 1000
         }
     }
-    // 실제 운동 시간
+    // 실제 운동 시간 milliseconds
     private fun totalTimeLongWhen(a: Any): Long {
         val value = when (a) {
             1 -> 10000 // 10초
@@ -457,4 +379,139 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     }
 
 
+
+
+    private fun ready(a: Int){
+        isRunning = true
+        mTimeLeftInMillis = modelList[a].exerciseTimeValue // 남은시간 밀리초 초기 설정
+        modelList[a].readyIsRunning = true
+
+        val readyToProgressBar = scope.launch {
+            readyTimerTask = kotlin.concurrent.timer(period = 10) {
+                time++ // 계속 변경됨
+
+                // 5.0 초 가 되는 순간, timerTask 중단 하고 Exercies progress 재생
+                if(time == modelList[a].readyProgressMaxValue){
+                    runOnUiThread {
+                        // 데이터 초기화
+                        time = 0
+                        modelList[a].readyProgressValue = 0
+                        modelList[a].readyIsRunning = false
+                        // 데이터 적용
+                        explainExerciseListAdapter.submitList(modelList)
+                        explainExerciseListAdapter.notifyDataSetChanged()
+                        readyTimerTask?.cancel()
+
+//                        play(a) // 운동 progress bar 시작
+//                        exerciseCountDownTimer(a) // 카운트 다운 타이머 시작
+//                        exerciseCountDown2(a)
+
+//                        initexerciseCountDown2(a)
+                    }
+                } else {
+                    runOnUiThread {
+                        // 0.01초 마다 변경됨
+                        modelList[a].readyProgressValue += 1
+                        explainExerciseListAdapter.submitList(modelList)
+                        explainExerciseListAdapter.notifyDataSetChanged()
+                    }
+                }
+            }
+        }
+        readyToProgressBar.isActive
+    }
+
+    private fun play(a: Int){
+        countDownTimerRunning = true // 카운트 다운 on
+        modelList[a].exerciseIsRunning = true
+        val playToProgressBar = scope.launch {
+            exerciseTimerTask = kotlin.concurrent.timer(period = 10) {
+                time++ // 계속 변경됨
+
+                if(time == modelList[a].exerciseProgressMaxValue){  // 10초
+                    runOnUiThread {
+                        mCountDownTimer?.cancel() // 카운트 다운 타이머 중지
+                        // 데이터 초기화
+                        time = 0
+                        modelList[a].exerciseProgressValue = 0
+                        modelList[a].exerciseTimeValue = modelList[a].exerciseTotalTime
+                        modelList[a].exerciseIsRunning = false
+                        countDownTimerRunning = false
+
+                        // 데이터 적용
+                        explainExerciseListAdapter.submitList(modelList)
+                        explainExerciseListAdapter.notifyDataSetChanged()
+                        exerciseTimerTask?.cancel()
+
+                        // 다음 운동 실행
+                        callExercise(a + 1)
+                    }
+                } else{
+                    runOnUiThread {
+                        // 0.01초 마다 변경됨 -- 변경 설정에서 Max 값 설정해야함
+                        modelList[a].exerciseProgressValue += 1
+                        explainExerciseListAdapter.submitList(modelList)
+                        explainExerciseListAdapter.notifyDataSetChanged()
+                    }
+                }
+            }
+        }
+        playToProgressBar.isActive
+    }
+
+    private fun exerciseCountDownTimer(a: Int){
+        val countDown = scope.launch {
+            mCountDownTimer = object : CountDownTimer(mTimeLeftInMillis!!, 1000) { // 1초 마다
+                // 단위 10milli
+                // 단위 1000milli
+                // 카운트 주기 로직에 맞춰서 log 찍어 봐야
+                override fun onTick(millisUntilFinished: Long) {
+                    mTimeLeftInMillis = millisUntilFinished
+
+                    Log.e("주기에 따른 값 확인 = ", mTimeLeftInMillis.toString()) // 1초마다 한번씩 찍힌다
+
+                    modelList[a].exerciseTimeValue = mTimeLeftInMillis!! // 데이터 변화
+                    explainExerciseListAdapter.submitList(modelList)
+                    explainExerciseListAdapter.notifyDataSetChanged()
+                }
+                override fun onFinish() {}
+            }.start()
+        }
+        countDown.isActive
+    }
+
+
+
 }
+
+
+///**
+// * 일시정지
+// */
+//private fun pause() {
+//    binding.controlButton.text = "시작"
+//    isRunning = false
+//
+//    mCountDownTimer?.cancel()   // 카운트다운 타이머 중지
+//    readyTimerTask?.cancel()    // 준비 프로그래스바 중지
+//    exerciseTimerTask?.cancel() // 운동 프로그래스바 중지
+//}
+///**
+// * 재 시작
+// */
+//private fun restart(a: Int) {
+//    binding.controlButton.text = "일시정지"
+//    isRunning = true
+//
+//    if(countDownTimerRunning){ // 카운트 타이머 동작중 여부 확인
+////            exerciseCountDownTimer(a) // 카운트다운 타이머 재진행
+//        exerciseCountDown2(a)
+//    }
+//    if(modelList[a].readyIsRunning){    // 준비 프로그래스바 작동중
+//        ready(a)
+//    }
+//    if(modelList[a].exerciseIsRunning){ // 운동 프로그래스바 작동중
+////            play(a)
+//        exerciseCountDown2(a)
+//    }
+//}
