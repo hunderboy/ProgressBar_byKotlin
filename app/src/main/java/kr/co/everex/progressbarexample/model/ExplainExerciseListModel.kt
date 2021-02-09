@@ -9,8 +9,8 @@ data class ExplainExerciseListModel(
     var exerciseImage: String? = null,
     // 운동 이름
     var exerciseName: String? = null,
-    var exerciseTotalTime: Long = 0,    // 해당 운동 시간 ex) 600000 = 600초 = 10분
-    var exerciseTimeValue: Long = 0,    // 카운트 다운 되면서 값 변화 됨
+    var exerciseTotalTime: Long = 0,    // 고정값. 해당 운동 시간 ex) 600000 = 600초 = 10분
+    var exerciseTimeValue: Long = 0,    // 카운트 다운 동작하면서 값 변화
 
     // 준비 or 운동 프로그래스 진행 여부
     var readyIsRunning: Boolean = false,
