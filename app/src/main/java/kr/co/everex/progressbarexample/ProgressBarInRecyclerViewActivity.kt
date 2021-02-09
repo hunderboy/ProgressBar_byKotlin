@@ -127,7 +127,7 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         readyProgress(a) // 초기화 작업 진행 후, getReady 실행
     }
     /**
-     *  각 Item의 Progress Bar 의 secondary progress 을 진행.( = 준비중 의미)
+     *  각 Item의 Progress Bar 의 secondary progress 을 진행.( = '준비중' 의미)
      */
     private fun readyProgress(a: Int){
         val readyToExercise = scope.launch {
@@ -167,7 +167,9 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
 
         exerciseProgress(a) // 초기화 작업 진행 후, exerciseProgress 실행
     }
-
+    /**
+     *  각 Item의 Progress Bar 의 progress 을 진행.( = '운동중' 의미)
+     */
     private fun exerciseProgress(a: Int){
         val playExercise = scope.launch {
             countDownTimerTask = object : CountDownTimer(currentLeftTime!!, 10) { // 0.01초 마다
@@ -260,26 +262,37 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         val assignedValue :Int? // 할당된 값
 
 
-        if (twoDigits in 81..90){ // 81~90 사이에 있다
-            assignedValue = 1
-        }else if (twoDigits in 71..80){
-            assignedValue = 2
-        }else if (twoDigits in 61..70){
-            assignedValue = 3
-        }else if (twoDigits in 51..60){
-            assignedValue = 4
-        }else if (twoDigits in 41..50){
-            assignedValue = 5
-        }else if (twoDigits in 31..40){
-            assignedValue = 6
-        }else if (twoDigits in 21..30){
-            assignedValue = 7
-        }else if (twoDigits in 11..20){
-            assignedValue = 8
-        }else if (twoDigits in 1..10){
-            assignedValue = 9
-        }else{ // 0 or 99~91
-            assignedValue = 0
+        when (twoDigits) {
+            in 81..90 -> { // 81~90 사이에 있다
+                assignedValue = 1
+            }
+            in 71..80 -> {
+                assignedValue = 2
+            }
+            in 61..70 -> {
+                assignedValue = 3
+            }
+            in 51..60 -> {
+                assignedValue = 4
+            }
+            in 41..50 -> {
+                assignedValue = 5
+            }
+            in 31..40 -> {
+                assignedValue = 6
+            }
+            in 21..30 -> {
+                assignedValue = 7
+            }
+            in 11..20 -> {
+                assignedValue = 8
+            }
+            in 1..10 -> {
+                assignedValue = 9
+            }
+            else -> { // 0 or 99~91
+                assignedValue = 0
+            }
         }
         return assignedValue
     }
