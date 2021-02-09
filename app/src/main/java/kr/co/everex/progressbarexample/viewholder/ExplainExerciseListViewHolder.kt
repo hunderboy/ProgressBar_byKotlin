@@ -28,7 +28,7 @@ class ExplainExerciseListViewHolder (
     private val exerciseImageView = itemView.exercise_img
     private val exerciseNameTextView = itemView.exercise_name_txt
     private val exerciseTotalTimeTextView = itemView.exercise_total_time
-
+    private val exerciseCompletedImageView = itemView.check_exercise_completed
     // 프로그래스 바
     private val exerciseProgressBar = itemView.progressBar_exercise_item
 
@@ -60,8 +60,15 @@ class ExplainExerciseListViewHolder (
             .into(exerciseImageView)
         /**--------------------------------------------------**/
 
-        // 카운트 다운 설정
+        // 카운트 다운 시간 Text 설정
         updateCountDownText(exerciseModel.exerciseTimeValue)
+        // 운동 완료에 따른 체크이미지 표시
+        if (exerciseModel.isCompleted){
+            exerciseCompletedImageView.visibility = View.VISIBLE
+        }else{ // 이부분 처리하지 않으면 운동 완료 표시가 멋대로 동작함.(스크롤 할때)
+            exerciseCompletedImageView.visibility = View.INVISIBLE
+        }
+
 
         // 준비 프로그래스 바 진행
         if(exerciseModel.readyIsRunning){
@@ -76,13 +83,11 @@ class ExplainExerciseListViewHolder (
         if(exerciseModel.exerciseIsRunning){
             exerciseProgressBar.max = exerciseModel.exerciseProgressMaxValue
             exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
-            Log.e("exerciseProgressBar = ", exerciseProgressBar.progress.toString())
         } else{
             // exerciseIsRunning = false
             // exerciseProgressValue = 0 값이 설정 되므로, Progress = 0(초기화) 된다.
             exerciseProgressBar.progress = exerciseModel.exerciseProgressValue
         }
-
     }
 
     override fun onClick(p0: View?) {

@@ -59,10 +59,11 @@
 
 
         <ImageView
-            android:id="@+id/Check_Exercise_Completed"
+            android:id="@+id/check_exercise_completed"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_marginEnd="20dp"
+            android:visibility="invisible"
 
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

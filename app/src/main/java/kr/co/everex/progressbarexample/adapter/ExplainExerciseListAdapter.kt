@@ -14,9 +14,10 @@ class ExplainExerciseListAdapter(
 ):
     RecyclerView.Adapter<ExplainExerciseListViewHolder>()
 {
+
     val TAG: String = "로그"
 
-    private var modelList = ArrayList<ExplainExerciseListModel>()
+//    private var modelList = ArrayList<ExplainExerciseListModel>()
     private var myRecyclerviewInterface :MyRecyclerviewInterface? = null
 
     // 생성자
@@ -24,10 +25,13 @@ class ExplainExerciseListAdapter(
         this.myRecyclerviewInterface = myRecyclerviewInterface
     }
 
+    companion object {
+        var modelList = ArrayList<ExplainExerciseListModel>()
+    }
 
     // 외부의 ArrayList 와 매칭
-    fun submitList(modelList: ArrayList<ExplainExerciseListModel>){
-        this.modelList = modelList
+    fun submitList(matchecList: ArrayList<ExplainExerciseListModel>){
+        modelList = matchecList
     }
 
     // 뷰홀더가 생성 되었을때
@@ -45,12 +49,12 @@ class ExplainExerciseListAdapter(
     override fun onBindViewHolder(holder: ExplainExerciseListViewHolder, position: Int) {
         Log.d(TAG, "ExplainExerciseListAdapter - onBindViewHolder() called / position: $position")
         // bind 할때, Model 데이터를 넘긴다.
-        holder.bind(this.modelList[position])
+        holder.bind(modelList[position])
     }
 
     // 목록의 아이템수
     override fun getItemCount(): Int {
-        return this.modelList.size
+        return modelList.size
     }
 
     override fun getItemId(position: Int): Long {

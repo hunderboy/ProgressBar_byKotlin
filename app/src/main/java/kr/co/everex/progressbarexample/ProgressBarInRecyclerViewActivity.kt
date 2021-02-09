@@ -72,24 +72,24 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
             )
             this.modelList.add(explainExerciseListModel)
         }
-        // 어답터 인스턴스 생성
+
+        // 어댑터 인스턴스 생성
         explainExerciseListAdapter = ExplainExerciseListAdapter(this)
         explainExerciseListAdapter.submitList(this.modelList)
         // 리사이클러뷰 설정
         binding.RecyclerViewPlayExerciseList.apply {
-            // 리사이클러뷰 방향 등 설정
             layoutManager = LinearLayoutManager(
                 this@ProgressBarInRecyclerViewActivity,
                 LinearLayoutManager.VERTICAL,
                 false
             )
-            // 어답터 장착
             adapter = explainExerciseListAdapter
         }
 
 
         /**  리사이클러뷰 세팅 완료 후 작업 ----------------------------------------------------------- */
-        callExercise(0) // index = 0 번째 운동 시작
+//        callExercise(currentIndex) // index = 0 번째 운동 부터 시작
+        callExercise(0) // index = 0 번째 운동 부터 시작
 
     }// onCreate 끝
 
@@ -103,15 +103,15 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         countDownTimerTask?.cancel()   // 운동 카운트다운 타이머 중지
     }
     /*** 재 시작*/
-    private fun restart(a: Int) {
+    private fun restart(index: Int) {
         binding.controlButton.text = "일시정지"
         isRunning = true
 
-        if(modelList[a].readyIsRunning){    // 준비 프로그래스바 작동 중인 경우
-            readyProgress(a)
+        if(modelList[index].readyIsRunning){    // 준비 프로그래스바 작동 중인 경우
+            readyProgress(index)
         }
-        else if(modelList[a].exerciseIsRunning){    // 운동 프로그래스바 작동 중인 경우
-            exerciseProgress(a)
+        else if(modelList[index].exerciseIsRunning){    // 운동 프로그래스바 작동 중인 경우
+            exerciseProgress(index)
         }
     }
 
@@ -120,34 +120,55 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     /**
      * ready progress 초기화 함수
      */
-    private fun initReadyProgress(a: Int){
-        isRunning = true
-        modelList[a].readyIsRunning = true
+    private fun initReadyProgress(index: Int){
+        // 포커스 슬라이드 설정
+        val scrollValue = 80 * index
+        Log.e("scrollValue", scrollValue.toString())
+        binding.RecyclerViewPlayExerciseList.smoothScrollBy(0,scrollValue+50)
+//        binding.RecyclerViewPlayExerciseList.smoothScrollToPosition(index)
 
-        readyProgress(a) // 초기화 작업 진행 후, getReady 실행
+
+        // 이전의 인덱스 들의 체크이미지 visible
+        for (i in 0 until index){ // ex) index == 4 경우 0,1,2,3 차례로 호출
+            modelList[i].isCompleted = true // 운동 완료 설정
+        }
+        // 이후의 인덱스 들의 체크이미지 invisible
+        for (i in index until modelList.size){ // ex) index == 2 경우 2,3,4 차례로 호출
+            modelList[i].isCompleted = false
+        }
+        changeDataSet(modelList) // 데이터 변경 적용
+
+
+        isRunning = true
+        modelList[index].readyIsRunning = true
+
+        readyProgress(index) // 초기화 작업 진행 후, getReady 실행
     }
     /**
      *  각 Item의 Progress Bar 의 secondary progress 을 진행.( = '준비중' 의미)
      */
-    private fun readyProgress(a: Int){
+    private fun readyProgress(index: Int){
         val readyToExercise = scope.launch {
             readyTimerTask = kotlin.concurrent.timer(period = 10) {
                 time++ // 계속 변경됨
 
                 // 5.0 초 가 되는 순간, timerTask 중단 하고 Exercies progress 재생
-                if(time == modelList[a].readyProgressMaxValue){
+                if(time == modelList[index].readyProgressMaxValue){
+                    readyTimerTask?.cancel() // readyProgress 종료
                     runOnUiThread {
                         // 데이터 초기화
                         time = 0
-                        modelList[a].readyProgressValue = 0
-                        modelList[a].readyIsRunning = false
+                        modelList[index].readyProgressValue = 0
+                        modelList[index].readyIsRunning = false
+                        // Todo 해당 포지션만 변경
                         changeItemData(modelList) // 데이터 변경 적용
-                        readyTimerTask?.cancel() // readyProgress 종료
-                        initExerciseProgress(a) // 운동 프로그래스 초기화 함수로 이동
+                        // 운동 프로그래스 초기화 함수로 이동
+                        initExerciseProgress(index)
                     }
                 } else {
                     runOnUiThread {
-                        modelList[a].readyProgressValue += 1
+                        modelList[index].readyProgressValue += 1
+                        // Todo 해당 포지션만 변경
                         changeItemData(modelList) // 데이터 변경 적용
                     }
                 }
@@ -160,22 +181,22 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
     /**
      * exercise progress 초기화 함수
      */
-    private fun initExerciseProgress(a: Int){
-        modelList[a].exerciseIsRunning = true
-        previousTime = modelList[a].exerciseTotalTime
-        currentLeftTime = modelList[a].exerciseTimeValue
+    private fun initExerciseProgress(index: Int){
+        modelList[index].exerciseIsRunning = true
+        previousTime = modelList[index].exerciseTotalTime
+        currentLeftTime = modelList[index].exerciseTimeValue
 
-        exerciseProgress(a) // 초기화 작업 진행 후, exerciseProgress 실행
+        exerciseProgress(index) // 초기화 작업 진행 후, exerciseProgress 실행
     }
     /**
      *  각 Item의 Progress Bar 의 progress 을 진행.( = '운동중' 의미)
      */
-    private fun exerciseProgress(a: Int){
+    private fun exerciseProgress(index: Int){
         val playExercise = scope.launch {
             countDownTimerTask = object : CountDownTimer(currentLeftTime!!, 10) { // 0.01초 마다
                 override fun onTick(millisUntilFinished: Long) {
                     currentLeftTime = millisUntilFinished // 0.01초 마다 환산된 값
-                    modelList[a].exerciseTimeValue = currentLeftTime!! // 카운트 다운을 위해 exerciseTimeValue 값 을 현재남은시간으로 설정
+                    modelList[index].exerciseTimeValue = currentLeftTime!! // 카운트 다운을 위해 exerciseTimeValue 값 을 현재남은시간으로 설정
 
                     valueConversionByZone(previousTime!!)   // 이전시간의 할당 값
                     valueConversionByZone(currentLeftTime!!)// 현재시간의 할당 값
@@ -189,7 +210,8 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                     previousTime = currentLeftTime
 
                     runOnUiThread {
-                        modelList[a].exerciseProgressValue += gap
+                        modelList[index].exerciseProgressValue += gap
+                        // Todo 해당 포지션만 변경
                         changeItemData(modelList) // 데이터 변경 적용
                     }
                 }// onTick 끝
@@ -197,18 +219,19 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
                 // 타이머 종료시에만 작동함
                 override fun onFinish() {
                     Log.e("finish = ","확인")
-
+                    // 카운트 다운 타이머 중지
+                    countDownTimerTask?.cancel()
                     runOnUiThread {
-                        // 카운트 다운 타이머 중지
-                        countDownTimerTask?.cancel()
                         // 데이터 초기화
-                        modelList[a].exerciseProgressValue = 0
-                        modelList[a].exerciseTimeValue = modelList[a].exerciseTotalTime
-                        modelList[a].exerciseIsRunning = false
+                        modelList[index].exerciseProgressValue = 0
+                        modelList[index].exerciseTimeValue = modelList[index].exerciseTotalTime
+                        modelList[index].exerciseIsRunning = false
+                        modelList[index].isCompleted = true // 운동 완료 설정
                         // 데이터 변경 적용
+                        // Todo 해당 포지션만 변경
                         changeItemData(modelList)
                         // 다음 운동 실행
-                        callExercise(a + 1)
+                        callExercise(index + 1)
                     }
                 }
             }.start()
@@ -216,38 +239,42 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
         playExercise.isActive
     }
 
-
+    // 현재 포지션만 변경
     private fun changeItemData(arraylist : ArrayList<ExplainExerciseListModel>){
+        explainExerciseListAdapter.submitList(arraylist)
+        explainExerciseListAdapter.notifyItemChanged(currentIndex) // 데이터 변경 적용
+    }
+    private fun changeDataSet(arraylist : ArrayList<ExplainExerciseListModel>){
         explainExerciseListAdapter.submitList(arraylist)
         explainExerciseListAdapter.notifyDataSetChanged() // 데이터 변경 적용
     }
 
     /** 운동 콜 함수. */
-    private fun callExercise(a: Int){
-        return when (a) {
+    private fun callExercise(index :Int){
+        return when (index) {
             0 -> {
-                initReadyProgress(0) // 10초
                 currentIndex = 0
+                initReadyProgress(0) // 10초
             }
             1 -> {
-                initReadyProgress(1)
                 currentIndex = 1
-            } // 10초
+                initReadyProgress(1)
+            }
             2 -> {
-                initReadyProgress(2) // 13초
                 currentIndex = 2
+                initReadyProgress(2) // 13초
             }
             3 -> {
-                initReadyProgress(3) // 50초
                 currentIndex = 3
+                initReadyProgress(3) // 50초
             }
             4 -> {
-                initReadyProgress(4)
                 currentIndex = 4
+                initReadyProgress(4)
             }
             else -> {
-                initReadyProgress(a)
-                currentIndex = a
+                currentIndex = index
+                initReadyProgress(index)
             }
         }
     }
@@ -351,7 +378,34 @@ class ProgressBarInRecyclerViewActivity : AppCompatActivity(), MyRecyclerviewInt
 
     // 클릭 리스너
     override fun onItemClicked(position: Int) {
-        Log.d(TAG, "ExplainExerciseActivity - onItemClicked() called / position: $position")
+        Log.e(TAG, "ExplainExerciseActivity - onItemClicked() called / position: $position")
+
+        // 초기화
+        if(modelList[currentIndex].readyIsRunning){         // 준비 프로그래스바 작동 중인 경우
+            readyTimerTask?.cancel() // readyProgress 종료
+            runOnUiThread {
+                // 데이터 초기화
+                time = 0
+                modelList[currentIndex].readyProgressValue = 0
+                modelList[currentIndex].readyIsRunning = false
+
+            }
+        }
+        else if(modelList[currentIndex].exerciseIsRunning){ // 운동 프로그래스바 작동 중인 경우
+            countDownTimerTask?.cancel()   // 운동 카운트다운 타이머 중지
+            runOnUiThread {
+                // 데이터 초기화
+                modelList[currentIndex].exerciseProgressValue = 0
+                modelList[currentIndex].exerciseTimeValue = modelList[currentIndex].exerciseTotalTime
+                modelList[currentIndex].exerciseIsRunning = false
+                // 데이터 변경 적용
+            }
+        }
+        // Todo 해당 포지션만 변경
+        changeItemData(modelList) // 데이터 변경 적용
+
+        // 선택된 것 실행
+        callExercise(position)
     }
 
 
