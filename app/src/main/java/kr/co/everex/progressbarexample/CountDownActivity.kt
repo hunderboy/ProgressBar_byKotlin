@@ -2,9 +2,8 @@ package kr.co.everex.progressbarexample
 
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import kr.co.everex.progressbarexample.databinding.ActivityCountDownBinding
 import java.util.*
@@ -13,12 +12,56 @@ import java.util.*
 class CountDownActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCountDownBinding
     private var mCountDownTimer: CountDownTimer? = null
-    private var mTimerRunning = false                   // 카운트 다운 작동 여부
+    private var mTimerRunning = false // 카운트 다운 작동 여부
 
-    // 600000 밀리초 = 600초 = 10분
-    private val START_TIME_IN_MILLIS: Long = 600000
+    /**
+     * 1000 ms (밀리초) = 1초 => 00:01
+     * 10000 ms (밀리초) = 1초 => 00:10
+     * 59000 ms (밀리초) = 59초 => 00:59
+     * 60000 ms (밀리초) = 60초(1분) = 01:00
+     * 85000 ms (밀리초) = 60초(1분) = 01:25
+     * 405000 ms (밀리초) = 60초(1분) = 06:45
+     * 600000 ms (밀리초) = 600초(10분) = 10:00
+     * 750000 ms (밀리초) = 600초(10분) = 12:30
+     */
+    private val START_TIME_IN_MILLIS: Long = 750000
     // 남은 시간 할당하기
     private var mTimeLeftInMillis = START_TIME_IN_MILLIS
+
+    private val testTime = "10:59"
+
+    // 밀리세컨드로 변환 (10:30)
+    private fun textToMillisecond(stringTime:String){
+        val token = stringTime.split(':') // list
+        // 분리 후 환산되어야 하는 초
+        println(token[0]) // 10 (분) : 600000ms
+        println(token[1]) // 30 (초) :  30000ms
+
+        // 분 -> Millisecond
+        val minuteMillisecond = token[0].toLong() * 60000
+        Log.e("minuteMillisecond",minuteMillisecond.toString())
+        // 초 -> Millisecond
+        val secondMillisecond = token[1].toLong() * 1000
+        Log.e("secondMillisecond",secondMillisecond.toString())
+
+        // 시간 To Millisecond 환산 통합
+        val total = minuteMillisecond + secondMillisecond
+        Log.e("total",total.toString())
+        mTimeLeftInMillis = total
+    }
+
+
+    // 시간 Text 업데이트
+    private fun updateCountDownText() {
+        val minutes = (mTimeLeftInMillis / 1000).toInt() / 60 // 분 단위 가져오기
+        val seconds = (mTimeLeftInMillis / 1000).toInt() % 60 // 초 단위 가져오기
+        Log.e("minutes",minutes.toString())
+        Log.e("seconds",seconds.toString())
+
+        val timeLeftFormatted: String =
+            java.lang.String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+        binding.textViewCountdown.text = timeLeftFormatted
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,7 +81,9 @@ class CountDownActivity : AppCompatActivity() {
         binding.buttonReset.setOnClickListener {
             resetTimer()
         }
+        textToMillisecond(testTime)
         updateCountDownText()
+
     }
 
     // 시작되면 계속 카운트 다운
@@ -75,13 +120,5 @@ class CountDownActivity : AppCompatActivity() {
         binding.buttonStartPause.visibility = View.VISIBLE
     }
 
-    // 시간 Text 업데이트
-    private fun updateCountDownText() {
-        val minutes = (mTimeLeftInMillis / 1000).toInt() / 60
-        val seconds = (mTimeLeftInMillis / 1000).toInt() % 60
-        val timeLeftFormatted: String =
-            java.lang.String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-        binding.textViewCountdown.text = timeLeftFormatted
-    }
 
 }
